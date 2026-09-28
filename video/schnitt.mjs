@@ -2,7 +2,7 @@
 // Zeitstempeln → gleichmäßige 30 fps, darunter Musik in Schleife (Ein- und Ausblende)
 // und an jedem Klick ein kurzes Klick-Geräusch.
 //
-//   MUSIK=/pfad/friends.mp3 node video/schnitt.mjs probe|quer|hoch [--ab SEK]
+//   MUSIK=/pfad/friends.mp3 node video/schnitt.mjs probe|quer|hoch|hochvoll[-en|-ru] [--ab SEK]
 //
 // ffmpeg: die volle Fassung aus dem Python-Paket imageio-ffmpeg (H.264 + AAC).
 // Playwrights eigenes ffmpeg kann nur VP8 ohne Ton.
@@ -25,6 +25,23 @@ const b = Z.bilder; if (b.length < 2) { console.error('keine Bilder'); process.e
 const t0 = b[0].t;
 // Zeitraffer (Hochkant): tempi = [{t, f}] — ab t läuft das Video f-mal so schnell.
 // v(t) rechnet eine echte Zeit in Videozeit um; ohne tempi ist v(t) = t - t0.
+// Hochkant-GANZ (hochvoll, Klaus 2026-09-28: „beim Drehen dort weitermachen, wo das Querformat aufgehört hat"):
+// jede Szene wird auf die Länge derselben Szene im Querformat gestreckt oder gestaucht. Dann liegt jede
+// Szenengrenze bei derselben Sekunde, beide Videos sind gleich lang, und currentTime lässt sich 1:1 übergeben.
+// Die Musik beginnt in beiden an derselben Stelle (MUSIK_AB) — auch der Ton läuft beim Drehen weiter.
+if (/^hochvoll(-\w+)?$/.test(NAME)) {
+  const Q = JSON.parse(fs.readFileSync(path.join(HIER, '_roh', NAME.replace('hochvoll', 'quer'), 'zeiten.json'), 'utf8'));
+  const grenzen = (z, ende) => { const g = [z.bilder[0].t, ...z.szenen.map(s => s.t), ende]; return g.slice(1).map((t, i) => t - g[i]); };
+  const hs = Z.szenen.map(s => s.n).join(','), qs = Q.szenen.map(s => s.n).join(',');
+  if (hs !== qs) { console.error(`Szenen passen nicht zusammen:\n  hoch ${hs}\n  quer ${qs}`); process.exit(2); }
+  const dh = grenzen(Z, b[b.length - 1].t), dq = grenzen(Q, Q.bilder[Q.bilder.length - 1].t);
+  const anf = [b[0].t, ...Z.szenen.map(s => s.t)];
+  // Der Vorlauf (erstes Bild bis erste Szene) ist oft NEGATIV (die Szene startet vor dem ersten Bild) — dann
+  // gibt es ihn nicht, und sein Faktor darf nicht mitten in die erste Szene fallen (gemessen: sonst 0,77 s zu kurz).
+  const liste = anf.map((t, i) => ({ t, f: dh[i] > 0.05 && dq[i] > 0.05 ? dh[i] / dq[i] : 1, n: i ? Z.szenen[i - 1].n : '(Vorlauf)', h: dh[i], q: dq[i] }));
+  liste.forEach(x => console.log(`  ${x.n}: hoch ${x.h.toFixed(2)} s → quer ${x.q.toFixed(2)} s (×${x.f.toFixed(3)})`));
+  Z.tempi = liste.filter((x, i) => i > 0 || (x.h > 0.05 && x.q > 0.05)).map(({ t, f }) => ({ t, f }));
+}
 const tempi = (Z.tempi || []).slice().sort((a, c) => a.t - c.t);
 const faktorBei = t => { let f = 1; for (const x of tempi) if (x.t <= t) f = x.f; return f; };
 function v(t) {
@@ -56,8 +73,8 @@ for (let i = 0; i < n; i++) {
 }
 const KLICK = path.join(ROH, 'klick.wav'); fs.writeFileSync(KLICK, pcm);
 
-// Klicks im Zeitraffer fallen weg — dort würden sie rattern
-const klicks = (Z.klicks || []).filter(k => faktorBei(k) <= 1.5).map(k => v(k)).filter(k => k >= 0 && k < dauer);
+// Klicks im Zeitraffer fallen weg — dort würden sie rattern (hochvoll: alle bleiben, die Szenen sind nur angeglichen)
+const klicks = (Z.klicks || []).filter(k => /^hochvoll/.test(NAME) || faktorBei(k) <= 1.5).map(k => v(k)).filter(k => k >= 0 && k < dauer);
 const aus = NAME === 'probe' ? path.join(ROH, 'probe.mp4') : path.join(HIER, '..', 'assets', `workfloh-pdf-${NAME}.mp4`);
 fs.mkdirSync(path.dirname(aus), { recursive: true });
 
@@ -85,9 +102,9 @@ if (/^quer(-\w+)?$/.test(NAME)) {
     path.join(HIER, '..', 'assets', `poster-${sp}.jpg`)], { stdio: 'inherit' });
 }
 // Hochkant: Poster aus der Titelkarte (1,3 s), 720 px breit — es steht auch hochkant auf der großen Bühne (Tablet)
-if (/^hoch(-\w+)?$/.test(NAME)) {
-  const sp = NAME === 'hoch' ? 'de' : NAME.slice(5);
+if (/^hoch(voll)?(-\w+)?$/.test(NAME)) {
+  const sp = /^hoch(voll)?$/.test(NAME) ? 'de' : NAME.split('-')[1];
   execFileSync(FF, ['-y', '-hide_banner', '-loglevel', 'error', '-ss', '1.3', '-i', aus, '-frames:v', '1', '-vf', 'scale=720:-2', '-q:v', '4',
-    path.join(HIER, '..', 'assets', `poster-hoch-${sp}.jpg`)], { stdio: 'inherit' });
+    path.join(HIER, '..', 'assets', `poster-${NAME.startsWith('hochvoll') ? 'hochvoll' : 'hoch'}-${sp}.jpg`)], { stdio: 'inherit' });
 }
 console.log(`${aus}: ${dauer.toFixed(1)} s, ${klicks.length} Klicks, ${(fs.statSync(aus).size / 1e6).toFixed(1)} MB`);

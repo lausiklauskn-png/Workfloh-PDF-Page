@@ -4,7 +4,8 @@
 //
 //   node video/aufnahme.mjs --probe          # Probeclip (Anfang + Scannen)
 //   node video/aufnahme.mjs                  # ganzes Video quer
-//   node video/aufnahme.mjs --hoch           # Hochkant-Fassung
+//   node video/aufnahme.mjs --hoch           # Hochkant-Kurzfassung (~30 s, Zeitraffer)
+//   node video/aufnahme.mjs --voll           # Hochkant, GANZES Video: dieselben Szenen wie quer (Klaus 2026-09-28)
 //
 // Ergebnis: video/_roh/<name>/bilder/*.jpg + zeiten.json (Bild-Zeitstempel, Klicks).
 // Danach: node video/schnitt.mjs <name>
@@ -16,10 +17,10 @@ import { starteServer } from './server.mjs';
 
 const HIER = path.dirname(fileURLToPath(import.meta.url));
 const APP = path.resolve(process.env.APP || path.join(HIER, '../../Workflow-PDF'));
-const probe = process.argv.includes('--probe') || process.argv.some(a => a.startsWith('--nur=')), hoch = process.argv.includes('--hoch');
+const probe = process.argv.includes('--probe') || process.argv.some(a => a.startsWith('--nur=')), voll = process.argv.includes('--voll'), hoch = voll || process.argv.includes('--hoch');
 const SPRACHE = ((process.argv.find(a => a.startsWith('--sprache=')) || '').slice(10)) || 'de';
 if (!['de', 'en', 'ru'].includes(SPRACHE)) { console.error('--sprache=de|en|ru'); process.exit(2); }
-const NAME = (probe ? 'probe' : hoch ? 'hoch' : 'quer') + (SPRACHE === 'de' ? '' : '-' + SPRACHE);
+const NAME = (probe ? 'probe' : voll ? 'hochvoll' : hoch ? 'hoch' : 'quer') + (SPRACHE === 'de' ? '' : '-' + SPRACHE);
 const W = hoch ? 1080 : 1920, H = hoch ? 1920 : 1080;
 const ZIEL = path.join(HIER, '_roh', NAME);
 fs.rmSync(ZIEL, { recursive: true, force: true }); fs.mkdirSync(path.join(ZIEL, 'bilder'), { recursive: true });
@@ -569,7 +570,7 @@ try {
     diaschau: szeneDiaschau, schluss: szeneSchluss };
   Object.assign(SZENEN, { hochAnfang, hochScannen, hochFelder, hochUebersetzen, hochSchluss });
   const HOCH = ['hochAnfang', 'hochScannen', 'hochFelder', 'hochUebersetzen', 'hochSchluss'];
-  const folge = NUR.length ? NUR : probe ? ['anfang', 'scannen', 'schluss'] : hoch ? HOCH : Object.keys(SZENEN).filter(n => !n.startsWith('hoch'));
+  const folge = NUR.length ? NUR : probe ? ['anfang', 'scannen', 'schluss'] : hoch && !voll ? HOCH : Object.keys(SZENEN).filter(n => !n.startsWith('hoch'));
   for (const n of folge) { const t = Date.now(); szenen.push({ n, t: t / 1000 }); await SZENEN[n](); console.log(`  ${n}: ${((Date.now() - t) / 1000).toFixed(1)} s`); }
 } catch (e) { console.error('Drehbuch abgebrochen:', e); }
 await warte(400);
