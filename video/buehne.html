@@ -9,7 +9,10 @@
    Hand und dem Klick-Ring (Klaus: „nichts abdecken"). Texte stehen im Band darunter. */
 :root{--rot:#E0231B;--rot-d:#9e1711;--ink:#16181d}
 html,body{margin:0;overflow:hidden;background:#101216;font-family:"DejaVu Sans",system-ui,sans-serif}
-#stage{position:relative;overflow:hidden;
+/* overflow:CLIP, nicht hidden (Klaus 2026-09-28: Band hochkant abgeschnitten): „hidden" ist ein Rollbereich —
+   rollt die App im iframe ein Element ins Bild (scrollIntoView), während die Kamera zoomt, rollte die GANZE Bühne
+   mit, samt Band (gemessen 915 px nach links). „clip" schneidet ab, ohne zu rollen. */
+#stage{position:relative;overflow:clip;
   background:#eef1f6 url(hintergrund-quer.jpg) center/cover no-repeat}
 /* Hintergrund: von ChatGPT gezeichnet (Klaus 2026-09-28), hell, Mitte frei */
 #stage.hoch{background-image:url(hintergrund-hoch.jpg)}
@@ -53,7 +56,14 @@ html,body{margin:0;overflow:hidden;background:#101216;font-family:"DejaVu Sans",
 /* Titelkarten und Übergänge: eine Ebene über allem */
 #karte,#karteAlt{position:absolute;inset:0;z-index:80;display:flex;flex-direction:column;align-items:center;justify-content:center;
   background:linear-gradient(150deg,var(--rot),var(--rot-d));color:#fff;text-align:center;visibility:hidden}
-#karte .floh,#karteAlt .floh{width:260px;height:260px;background:url(/app/icons/w-floh-320.png) center/contain no-repeat}
+#karte .floh,#karteAlt .floh{position:relative;width:260px;height:260px}
+#karte .floh::after,#karteAlt .floh::after{content:"";position:absolute;inset:0;background:url(/app/icons/w-floh-320.png) center/contain no-repeat}
+/* Weißer Kreisschatten hinter dem roten Floh, wie auf dem Titelblatt des Handbuchs (Klaus 2026-09-28: rot auf Rot
+   kaum zu sehen). Dort 36 deckungsgleiche Kreise mit 3 % Deckkraft — innen addieren sie sich, außen läuft es aus.
+   Dieselben Stufen als Verlauf: Durchmesser 1,33 × Floh. Kreis in ::before, Floh in ::after — so liegt der Floh
+   immer darüber, auch wenn .hopst/.winkt die Ebene per transform zu einem eigenen Stapel machen. */
+#karte .floh::before,#karteAlt .floh::before{content:"";position:absolute;inset:-43px;border-radius:50%;
+  background:radial-gradient(circle closest-side,rgba(255,255,255,.67),rgba(255,255,255,.61) 25%,rgba(255,255,255,.47) 50%,rgba(255,255,255,.26) 75%,rgba(255,255,255,0))}
 #karte h1,#karteAlt h1{font-size:92px;margin:8px 0 0;letter-spacing:-.02em}
 #karte h1 span,#karteAlt h1 span{font-weight:400}
 #karte p,#karteAlt p{font-size:38px;margin:10px 0 0;opacity:.95}
