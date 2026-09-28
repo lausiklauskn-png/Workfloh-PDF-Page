@@ -26,14 +26,17 @@ Ablauf, Bauweise, benannte Grenzen.
   `tempo(f)`-Marken, die `schnitt.mjs` umrechnet. Wer das Drehbuch verlängert,
   prüft die Länge wieder gegen 30 s. `tests/seite.mjs` misst, dass Gerät und Band
   hochkant ganz im Bild liegen.
-- **Die große Bühne wechselt von selbst nach der Lage** (Klaus 2026-09-28):
-  hochkant (`matchMedia('(orientation: portrait)')`) zeigt sie die Kurzfassung
-  samt Hinweis, quer das ganze Video mit Kapiteln. Beim Drehen wird die Quelle
-  getauscht (nicht im Vollbild). `tests/seite.mjs` 5b misst beide Richtungen.
-  Hochkant-Poster sind 720 px breit, weil sie auch auf dem Tablet stehen.
+- **Hochkant GANZ (`hochvoll`, Klaus 2026-09-28): „beim Drehen da weitermachen, wo das Querformat aufgehört
+  hat, ohne Verzögerung".** `aufnahme.mjs --voll` nimmt dieselben Szenen wie quer hochkant auf;
+  `schnitt.mjs hochvoll[-en|-ru]` bringt jede Szene auf die Länge derselben Szene im Querformat (braucht
+  `_roh/quer*`). Gleiche Sekunden, gleiche Kapitel, gleiche Musik. Die Bühne (und das Erklärvideo der App)
+  zeigt hochkant `workfloh-pdf-hochvoll*.mp4`, quer das Querformat; nach dem Start lädt die andere Lage
+  verborgen und stumm mit, Drehen schaltet nur um. Wer das Querformat neu aufnimmt, schneidet `hochvoll`
+  NEU, sonst stimmen die Sekunden nicht mehr. `tests/seite.mjs` 5b misst „an derselben Stelle".
+  Innerhalb einer Szene ist der Ablauf hochkant etwas anders getaktet — gleich sind die Szenengrenzen.
 - **Die App verlinkt direkt auf die Videos** (Workflow PDF, Hilfe → 🎬 Erklärvideo, seit 2026-09-28):
   `assets/workfloh-pdf-quer{,-en,-ru}.mp4` und `assets/poster-{de,en,ru}.jpg`. **Wer eine dieser Dateien
-  umbenennt oder verschiebt, bricht den Knopf in der App** — dort `videoFuer()` in `assets/app.js` und
+  umbenennt oder verschiebt, bricht den Knopf in der App** (auch `workfloh-pdf-hochvoll*.mp4` und `poster-hochvoll-*.jpg`) — dort `videoFuer()` in `assets/app.js` und
   `tests/video.mjs` mitziehen. Die App zeigt dann nur den Satz „braucht Internet", keinen Fehler.
 - Ladezeit-Regeln: Skill `seiten-bauregeln`. Beide Videos laden erst beim Antippen.
 

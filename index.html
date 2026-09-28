@@ -71,11 +71,9 @@
   .tipp p{margin:0}
   footer{border-top:1px solid #dde0e6;padding:18px 0 34px;color:var(--grau);font-size:.9rem}
   footer a{margin-right:14px}
-  /* Hochkant (Klaus 2026-09-28): die Bühne zeigt die Hochkant-Fassung, von selbst nach der Lage des Geräts */
+  /* Hochkant (Klaus 2026-09-28): die Bühne zeigt dasselbe Video hochkant, von selbst nach der Lage des Geräts */
   .hochkant .buehne{aspect-ratio:9/16;width:min(100%,calc(78vh * 9 / 16));margin:0 auto}
-  .hochkant .kapitel,.hochkant #kurzBild,.hochkant #kurzVideo{display:none}
-  .hoch-hinweis{margin:10px 0 0;color:var(--grau);font-size:.95rem;text-align:center}
-  .hoch-hinweis[hidden]{display:none}
+  .buehne video[hidden]{display:none}
   @media (max-width:560px){.kopf img{width:36px;height:36px}.marke{font-size:1.05rem}.sprachen button{min-width:40px}.abspielen i{width:68px;height:68px}.abspielen i::after{border-left-width:24px;border-top-width:15px;border-bottom-width:15px}}
 </style>
 </head>
@@ -104,7 +102,6 @@
     <span class="dauer" id="dauer">3:44</span>
   </div>
   <ul class="kapitel" id="kapitel" aria-label="Kapitel"></ul>
-  <p class="hoch-hinweis" id="hochHinweis" data-t="hochHinweis" hidden>Hochkant läuft die Kurzfassung (30 Sekunden). Für das ganze Video mit Kapiteln das Gerät quer halten.</p>
 
   <div class="los">
     <a class="knopf" href="https://lausiklauskn-png.github.io/Workflow-PDF/" data-t="appOeffnen">Workfloh PDF öffnen →</a>
@@ -169,7 +166,9 @@
 (() => {
   const VIDEO = { de: 'assets/workfloh-pdf-quer.mp4', en: 'assets/workfloh-pdf-quer-en.mp4', ru: 'assets/workfloh-pdf-quer-ru.mp4' };
   const DAUER = { de: '3:44', en: '3:44', ru: '3:46' };
-  const DAUER_HOCH = { de: '0:31', en: '0:31', ru: '0:32' };
+  // Hochkant-Fassung des GANZEN Videos: jede Szene auf die Länge des Querformats gebracht (video/schnitt.mjs) —
+  // gleich lang, gleiche Kapitel-Sekunden. Beim Drehen geht es an derselben Stelle weiter.
+  const VOLL = { de: 'assets/workfloh-pdf-hochvoll.mp4', en: 'assets/workfloh-pdf-hochvoll-en.mp4', ru: 'assets/workfloh-pdf-hochvoll-ru.mp4' };
   const KURZ = { de: 'assets/workfloh-pdf-hoch.mp4', en: 'assets/workfloh-pdf-hoch-en.mp4', ru: 'assets/workfloh-pdf-hoch-ru.mp4' };
   const MARKEN = { de: 'assets/kapitel-quer.json', en: 'assets/kapitel-quer-en.json', ru: 'assets/kapitel-quer-ru.json' };
   const KAP = {
@@ -218,7 +217,6 @@
       tippT: 'Tip: translate documents in the Chrome browser',
       tippP: 'Chrome’s built-in translator gave good results for documents. The app offers the “Translate with Chrome” route for this.',
       recht: 'Legal notice & privacy', musik: 'Music in the video: “Friends” by paulyudin, via Pixabay (Pixabay licence).',
-      hochHinweis: 'Held upright, the short version plays (30 seconds). Turn the device sideways for the full video with chapters.',
       spielen: 'Play video', kapitel: 'Chapters',
       kurzT: 'Short version: 30 seconds, portrait', kurzP: 'Scan, fill in, translate — to send on via WhatsApp or as a status.',
       kurzLaden: '⬇ Download video', kurzSpielen: 'Play short version'
@@ -263,7 +261,6 @@
       tippT: 'Совет: документы лучше переводить в браузере Chrome',
       tippP: 'Встроенный переводчик Chrome хорошо справился с документами. В приложении для этого есть путь «Перевести с Chrome».',
       recht: 'Выходные данные и защита данных (на немецком)', musik: 'Музыка в видео: «Friends», paulyudin, Pixabay (лицензия Pixabay).',
-      hochHinweis: 'Вертикально идёт короткая версия (30 секунд). Для полного видео с главами поверните устройство горизонтально.',
       spielen: 'Смотреть видео', kapitel: 'Главы',
       kurzT: 'Коротко: 30 секунд, вертикально', kurzP: 'Сканировать, заполнить, перевести — чтобы переслать в WhatsApp или поставить в статус.',
       kurzLaden: '⬇ Скачать видео', kurzSpielen: 'Смотреть короткое видео'
@@ -307,42 +304,67 @@
     kapitelZeigen();
   }
 
-  // Lage des Geräts (Klaus 2026-09-28): hochkant läuft die Hochkant-Fassung, quer das ganze Video.
-  // Von selbst beim Laden UND beim Drehen — nicht im Vollbild (dort dreht der Browser das Video
-  // selbst, ein Wechsel der Quelle finge von vorn an), dafür beim Verlassen des Vollbilds.
+  // Lage des Geräts (Klaus 2026-09-28): hochkant dasselbe Video hochkant, quer im Querformat — beim Drehen
+  // an DERSELBEN Stelle weiter. Nahtlos, weil die andere Fassung nach dem Start schon still mitlädt (zweit):
+  // gedreht wird nur umgeschaltet (Zeit übernehmen, zeigen, abspielen). Nicht im Vollbild (dort dreht der
+  // Browser das Bild selbst), dafür beim Verlassen des Vollbilds.
   const LAGE = matchMedia('(orientation: portrait)');
   const hoch = () => LAGE.matches;
-  const quelle = () => (hoch() ? KURZ : VIDEO)[sprache];
+  const quelle = (h = hoch()) => (h ? VOLL : VIDEO)[sprache];
+  const abs = u => new URL(u, location.href).href;
+  let zweit = null;
   function buehneStand() {
-    $('#poster').src = hoch() ? 'assets/poster-hoch-' + sprache + '.jpg' : 'assets/poster-' + sprache + '.jpg';
-    $('#dauer').textContent = (hoch() ? DAUER_HOCH : DAUER)[sprache];
+    $('#poster').src = 'assets/poster-' + (hoch() ? 'hochvoll-' : '') + sprache + '.jpg';
+    $('#dauer').textContent = DAUER[sprache];
+  }
+  function neuesVideo(src) {
+    const v = document.createElement('video');
+    v.controls = true; v.playsInline = true; v.preload = 'auto'; v.src = src;
+    v.addEventListener('timeupdate', () => {
+      if (v !== video) return;
+      const t = v.currentTime; let akt = null;
+      document.querySelectorAll('#kapitel button').forEach(b => { if (+b.dataset.t0 <= t + .2) akt = b; });
+      document.querySelectorAll('#kapitel button').forEach(b => b.classList.toggle('jetzt', b === akt));
+    });
+    return v;
+  }
+  function zweitVorbereiten() {   // die andere Lage lädt still mit, damit Drehen sofort umschaltet
+    if (zweit || !video) return;
+    zweit = neuesVideo(quelle(!hoch())); zweit.muted = true; zweit.hidden = true;
+    buehne.append(zweit);
+  }
+  function umschalten(t, lief) {
+    const alt = video, neu = zweit;
+    neu.muted = alt.muted; neu.volume = alt.volume;
+    const zeigen = () => {
+      neu.hidden = false; alt.hidden = true; alt.pause(); alt.muted = true;
+      video = neu; zweit = alt;
+      if (lief) video.play().catch(() => {});
+    };
+    const setzen = () => { if (Math.abs(neu.currentTime - t) < 0.05) zeigen(); else { neu.addEventListener('seeked', zeigen, { once: true }); neu.currentTime = t; } };
+    if (neu.readyState >= 1) setzen(); else neu.addEventListener('loadedmetadata', setzen, { once: true });
   }
   function lageSetzen() {
     document.documentElement.classList.toggle('hochkant', hoch());
-    $('#hochHinweis').hidden = !hoch();
-    if (hoch() && kurz) kurz.pause();
     if (!video) { buehneStand(); return; }
     if (document.fullscreenElement || document.webkitFullscreenElement) return;
-    const neu = new URL(quelle(), location.href).href;
-    if (video.src === neu) return;
-    const lief = !video.paused; video.src = neu;
-    if (lief) video.play().catch(() => {});
+    const ziel = abs(quelle());
+    if (video.src === ziel) return;
+    const t = video.currentTime, lief = !video.paused;
+    if (zweit && zweit.src === ziel) { umschalten(t, lief); return; }
+    video.src = ziel;   // Rückweg ohne vorgeladene Fassung
+    video.addEventListener('loadedmetadata', () => { video.currentTime = t; if (lief) video.play().catch(() => {}); }, { once: true });
   }
 
   function spiele(ab) {
     if (!video) {
-      video = document.createElement('video');
-      video.controls = true; video.playsInline = true; video.preload = 'auto';
-      video.src = quelle();
+      video = neuesVideo(quelle());
       buehne.textContent = ''; buehne.append(video);
-      video.addEventListener('timeupdate', () => {
-        const t = video.currentTime; let akt = null;
-        document.querySelectorAll('#kapitel button').forEach(b => { if (+b.dataset.t0 <= t + .2) akt = b; });
-        document.querySelectorAll('#kapitel button').forEach(b => b.classList.toggle('jetzt', b === akt));
-      });
+      video.addEventListener('playing', zweitVorbereiten, { once: true });
     }
-    const los = () => { if (ab != null) video.currentTime = ab; video.play().catch(() => {}); };
-    if (video.readyState >= 1) los(); else video.addEventListener('loadedmetadata', los, { once: true });
+    const v = video;
+    const los = () => { if (ab != null) v.currentTime = ab; v.play().catch(() => {}); };
+    if (v.readyState >= 1) los(); else v.addEventListener('loadedmetadata', los, { once: true });
     buehne.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   }
 
@@ -370,8 +392,12 @@
     sprache = sp; merke('wfpdfpage_sprache', sp);
     document.querySelectorAll('[data-sprache]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.sprache === sp)));
     texte(); markenLaden(); kurzSprache();
-    if (video) { const lief = !video.paused; video.src = quelle(); if (lief) video.play().catch(() => {}); }
-    else buehneStand();
+    if (video) {
+      if (zweit) { zweit.remove(); zweit = null; }
+      const lief = !video.paused; video.src = quelle();
+      if (lief) video.play().catch(() => {});
+      video.addEventListener('playing', zweitVorbereiten, { once: true });
+    } else buehneStand();
   }
 
   document.querySelectorAll('[data-sprache]').forEach(b => b.addEventListener('click', () => waehle(b.dataset.sprache)));
