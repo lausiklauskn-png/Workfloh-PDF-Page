@@ -22,12 +22,22 @@ const FF = process.env.FFMPEG || execFileSync('python3', ['-c', 'import imageio_
 
 const Z = JSON.parse(fs.readFileSync(path.join(ROH, 'zeiten.json'), 'utf8'));
 const b = Z.bilder; if (b.length < 2) { console.error('keine Bilder'); process.exit(2); }
-const t0 = b[0].t, dauer = b[b.length - 1].t - t0 + 0.04;
+const t0 = b[0].t;
+// Zeitraffer (Hochkant): tempi = [{t, f}] — ab t läuft das Video f-mal so schnell.
+// v(t) rechnet eine echte Zeit in Videozeit um; ohne tempi ist v(t) = t - t0.
+const tempi = (Z.tempi || []).slice().sort((a, c) => a.t - c.t);
+const faktorBei = t => { let f = 1; for (const x of tempi) if (x.t <= t) f = x.f; return f; };
+function v(t) {
+  let s = 0, von = t0, f = 1;
+  for (const x of tempi) { if (x.t >= t) break; if (x.t > von) { s += (x.t - von) / f; von = x.t; } f = x.f; }
+  return s + Math.max(0, t - von) / f;
+}
+const dauer = v(b[b.length - 1].t) + 0.04;
 
 // 1 · Bildfolge mit echten Dauern (concat-Liste), danach fps=30
 const liste = [];
 for (let i = 0; i < b.length; i++) {
-  const d = i + 1 < b.length ? b[i + 1].t - b[i].t : 0.04;
+  const d = i + 1 < b.length ? v(b[i + 1].t) - v(b[i].t) : 0.04;
   liste.push(`file '${path.join(ROH, 'bilder', b[i].datei)}'`, `duration ${Math.max(0.001, d).toFixed(4)}`);
 }
 liste.push(`file '${path.join(ROH, 'bilder', b[b.length - 1].datei)}'`);
@@ -46,7 +56,8 @@ for (let i = 0; i < n; i++) {
 }
 const KLICK = path.join(ROH, 'klick.wav'); fs.writeFileSync(KLICK, pcm);
 
-const klicks = (Z.klicks || []).map(k => k - t0).filter(k => k >= 0 && k < dauer);
+// Klicks im Zeitraffer fallen weg — dort würden sie rattern
+const klicks = (Z.klicks || []).filter(k => faktorBei(k) <= 1.5).map(k => v(k)).filter(k => k >= 0 && k < dauer);
 const aus = NAME === 'probe' ? path.join(ROH, 'probe.mp4') : path.join(HIER, '..', 'assets', `workfloh-pdf-${NAME}.mp4`);
 fs.mkdirSync(path.dirname(aus), { recursive: true });
 
@@ -63,8 +74,8 @@ execFileSync(FF, ['-y', '-hide_banner', '-loglevel', 'error', ...eing, '-filter_
   '-map', '[v]', '-map', '[a]', '-c:v', 'libx264', '-preset', 'slow', '-crf', '21', '-tune', 'animation',
   '-c:a', 'aac', '-b:a', '160k', '-movflags', '+faststart', '-t', dauer.toFixed(3), aus], { stdio: 'inherit' });
 // 4 · Kapitel-Marken für die Seite (Sekunden im Video), nur wenn die Aufnahme sie trägt
-if (NAME !== 'probe' && Z.szenen && Z.szenen.length) {
-  const km = Z.szenen.map(s => ({ n: s.n, t: Math.max(0, +(s.t - t0).toFixed(1)) }));
+if (/^quer(-\w+)?$/.test(NAME) && Z.szenen && Z.szenen.length) {   // hochkant hat keine Kapitel-Knöpfe
+  const km = Z.szenen.map(s => ({ n: s.n, t: Math.max(0, +v(s.t).toFixed(1)) }));
   fs.writeFileSync(path.join(HIER, '..', 'assets', `kapitel-${NAME}.json`), JSON.stringify(km));
 }
 // 5 · Poster für die Seite: ein Bild aus der Titelkarte (2,5 s), 1280 px breit
@@ -72,5 +83,11 @@ if (/^quer(-\w+)?$/.test(NAME)) {
   const sp = NAME === 'quer' ? 'de' : NAME.slice(5);
   execFileSync(FF, ['-y', '-hide_banner', '-loglevel', 'error', '-ss', '2.5', '-i', aus, '-frames:v', '1', '-vf', 'scale=1280:-2', '-q:v', '4',
     path.join(HIER, '..', 'assets', `poster-${sp}.jpg`)], { stdio: 'inherit' });
+}
+// Hochkant: kleines Poster aus der Titelkarte (1,3 s), 360 px breit
+if (/^hoch(-\w+)?$/.test(NAME)) {
+  const sp = NAME === 'hoch' ? 'de' : NAME.slice(5);
+  execFileSync(FF, ['-y', '-hide_banner', '-loglevel', 'error', '-ss', '1.3', '-i', aus, '-frames:v', '1', '-vf', 'scale=360:-2', '-q:v', '5',
+    path.join(HIER, '..', 'assets', `poster-hoch-${sp}.jpg`)], { stdio: 'inherit' });
 }
 console.log(`${aus}: ${dauer.toFixed(1)} s, ${klicks.length} Klicks, ${(fs.statSync(aus).size / 1e6).toFixed(1)} MB`);

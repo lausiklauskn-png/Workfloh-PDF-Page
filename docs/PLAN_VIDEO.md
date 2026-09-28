@@ -108,7 +108,20 @@ ist. Musik: ein 30-s-Ausschnitt mit Aus-Blende.
   `assets/poster-<sprache>.jpg` — beides schreibt `schnitt.mjs`. Die deutschen
   Kapitelmarken sind einmalig aus den Szenendauern gerechnet (die Aufnahme
   schrieb sie da noch nicht mit), Abweichung unter einer Sekunde.
-- **Offen:** das Hochkant-Video.
+- **Hochkant gebaut (2026-09-28):** `assets/workfloh-pdf-hoch{,-en,-ru}.mp4`, je
+  31–32 s, 1080×1920. `node video/aufnahme.mjs --hoch --sprache=de|en|ru`, dann
+  `node video/schnitt.mjs hoch|hoch-en|hoch-ru`. Eigenes, kürzeres Drehbuch
+  (Anfang · Scannen · Ausfüllen · Übersetzen · Schluss); Wartezeiten laufen im
+  **Zeitraffer**: `tempo(f)` im Drehbuch setzt eine Marke, `schnitt.mjs` rechnet
+  die Bildzeiten danach um (Klicks im Zeitraffer fallen weg, sie würden rattern).
+  Das Gerät passt jetzt ganz ins Bild: der Zoom wird aus dem Platz zwischen
+  Kapitelzeile und Band **gerechnet** (vorher fest 2,05 → Gerät endete bei 1957 px).
+  Auf der Seite als „Kurzfassung" mit Herunterladen je Sprache.
+- **Kästchen im Video nach Lage getippt:** die Offline-Erkennung der App benennt
+  ein Kästchen nach dem Text LINKS davon — „Hauptwohnsitz" hieß das Kästchen neben
+  „Nebenwohnsitz". Ein App-Befund in Workflow-PDF, hier nicht behoben. Das
+  Querformat-Video tippt noch nach Namen und zeigt deshalb den Haken am falschen
+  Kästchen.
 
 ## Die Musik liegt NICHT im Repo
 

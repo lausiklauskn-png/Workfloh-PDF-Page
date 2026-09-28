@@ -22,7 +22,11 @@ Ablauf, Bauweise, benannte Grenzen.
 - **Drei Sprachen:** wer das Drehbuch ändert, baut alle drei Videos neu
   (`--sprache=de|en|ru`); ein neuer Satz im Band braucht einen Eintrag in
   `video/texte.json`, sonst meldet die Aufnahme „[ohne Übersetzung]“.
-- Ladezeit-Regeln: Skill `seiten-bauregeln`. Das Video lädt erst beim Antippen.
+- **Hochkant (Kurzfassung, ~31 s):** `aufnahme.mjs --hoch`, Zeitraffer über
+  `tempo(f)`-Marken, die `schnitt.mjs` umrechnet. Wer das Drehbuch verlängert,
+  prüft die Länge wieder gegen 30 s. `tests/seite.mjs` misst, dass Gerät und Band
+  hochkant ganz im Bild liegen.
+- Ladezeit-Regeln: Skill `seiten-bauregeln`. Beide Videos laden erst beim Antippen.
 
 ## Prüfen
 
