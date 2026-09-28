@@ -67,6 +67,22 @@
   .kurz a{font-weight:600}
   .kurz.offen .kurz-bild{cursor:default}
   .gitter .bild{display:block;width:100%;max-width:260px;height:auto;margin:0 auto 12px;border-radius:10px;border:1px solid #e3e5ea;background:#f4f5f7}
+  /* Karten wachsen (Klaus 2026-09-28): ab 600 px Breite beim Zeigen mit der Maus oder beim Antippen
+     größer, über den Nachbarn. Am Handy stehen sie ohnehin einzeln und das Bild füllt die Breite. */
+  .gitter section{position:relative;transition:transform .22s ease,box-shadow .22s ease}
+  @media (min-width:600px){
+    .gitter section{cursor:zoom-in}
+    .gitter section.gross{cursor:zoom-out}
+    .gitter section.gross{transform:scale(1.18);z-index:5;box-shadow:0 14px 38px rgba(0,0,0,.24)}
+  }
+  @media (min-width:600px) and (hover:hover){
+    .gitter section:hover{transform:scale(1.18);z-index:5;box-shadow:0 14px 38px rgba(0,0,0,.24)}
+  }
+  @media (max-width:599px){
+    .gitter{grid-template-columns:1fr}
+    .gitter .bild{max-width:440px}
+  }
+  @media (prefers-reduced-motion:reduce){.gitter section{transition:none}}
   .tipp{background:#fff;border-left:6px solid #1a73e8;border-radius:12px;padding:14px 16px;margin:8px 0 26px;box-shadow:0 1px 6px rgba(0,0,0,.06)}
   .tipp h2{font-size:1.05rem;margin:0 0 4px}
   .tipp p{margin:0}
@@ -142,10 +158,10 @@
 
   <h2 class="abschnitt" id="wissen" data-t="wissenT">Gut zu wissen</h2>
   <div class="gitter klein">
-    <section><h3 data-t="v1">🔒 Bleibt auf dem Gerät</h3><p data-t="v1t">Ihre Dokumente werden nicht hochgeladen. Kein Konto, keine Anmeldung.</p></section>
-    <section><h3 data-t="v2">📶 Läuft ohne Internet</h3><p data-t="v2t">Nach dem ersten Öffnen offline nutzbar und wie eine App installierbar.</p></section>
-    <section><h3 data-t="v3">🤖 KI nur, wenn Sie wollen</h3><p data-t="v3t">Mit eigenem Schlüssel und erst nach Ihrer Bestätigung. Vorgabe: Mistral (EU).</p></section>
-    <section><h3 data-t="v4">🗣 Vier Sprachen</h3><p data-t="v4t">Die Oberfläche spricht Deutsch, English, Русский und العربية.</p></section>
+    <section><img class="bild" data-bild="geraet" src="assets/bilder/de-geraet.jpg" alt="" width="540" height="760" loading="lazy"><h3 data-t="v1">🔒 Bleibt auf dem Gerät</h3><p data-t="v1t">Ihre Dokumente werden nicht hochgeladen. Kein Konto, keine Anmeldung.</p></section>
+    <section><img class="bild" data-bild="offline" src="assets/bilder/de-offline.jpg" alt="" width="540" height="760" loading="lazy"><h3 data-t="v2">📶 Läuft ohne Internet</h3><p data-t="v2t">Nach dem ersten Öffnen offline nutzbar und wie eine App installierbar.</p></section>
+    <section><img class="bild" data-bild="ki" src="assets/bilder/de-ki.jpg" alt="" width="540" height="760" loading="lazy"><h3 data-t="v3">🤖 KI nur, wenn Sie wollen</h3><p data-t="v3t">Mit eigenem Schlüssel und erst nach Ihrer Bestätigung. Vorgabe: Mistral (EU).</p></section>
+    <section><img class="bild" data-bild="sprachen" src="assets/bilder/de-sprachen.jpg" alt="" width="540" height="760" loading="lazy"><h3 data-t="v4">🗣 Vier Sprachen</h3><p data-t="v4t">Die Oberfläche spricht Deutsch, English, Русский und العربية.</p></section>
   </div>
 
   <div class="tipp">
@@ -379,6 +395,30 @@
     }
     kurz.play().catch(() => {});
   }
+  /* Karten wachsen: Ursprung zur Mitte der Seite hin, damit eine Randkarte nicht über den Rand wächst.
+     Antippen (Touch, ab 600 px) vergrößert und verkleinert; eine andere Karte nimmt die Vergrößerung mit. */
+  (function kartenWachsen() {
+    const karten = [...document.querySelectorAll('.gitter section')];
+    const ursprung = k => {
+      const r = k.getBoundingClientRect(), mitte = window.innerWidth / 2, x = r.left + r.width / 2;
+      const h = x < mitte - r.width * 0.4 ? 'left' : x > mitte + r.width * 0.4 ? 'right' : 'center';
+      k.style.transformOrigin = h + ' center';
+    };
+    let zeiger = 'mouse';   // mit der Maus wächst die Karte beim Zeigen, ein Klick schaltet nichts fest
+    karten.forEach(k => {
+      k.addEventListener('pointerenter', () => ursprung(k));
+      k.addEventListener('pointerdown', e => { zeiger = e.pointerType; });
+      k.addEventListener('click', e => {
+        if (window.innerWidth < 600 || zeiger === 'mouse' || e.target.closest('a,button')) return;
+        ursprung(k);
+        const an = !k.classList.contains('gross');
+        karten.forEach(x => x.classList.remove('gross'));
+        if (an) k.classList.add('gross');
+      });
+    });
+    document.addEventListener('click', e => { if (!e.target.closest('.gitter section')) karten.forEach(x => x.classList.remove('gross')); });
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') karten.forEach(x => x.classList.remove('gross')); });
+  })();
   function kurzSprache() {
     $('#kurzLaden').href = KURZ[sprache];
     $('#kurzLaden').download = 'workfloh-pdf-hochkant' + (sprache === 'de' ? '' : '-' + sprache) + '.mp4';
