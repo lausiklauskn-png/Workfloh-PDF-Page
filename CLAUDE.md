@@ -46,6 +46,11 @@ Ablauf, Bauweise, benannte Grenzen.
   `assets/workfloh-pdf-quer{,-en,-ru}.mp4` und `assets/poster-{de,en,ru}.jpg`. **Wer eine dieser Dateien
   umbenennt oder verschiebt, bricht den Knopf in der App** (auch `workfloh-pdf-hochvoll*.mp4` und `poster-hochvoll-*.jpg`) — dort `videoFuer()` in `assets/app.js` und
   `tests/video.mjs` mitziehen. Die App zeigt dann nur den Satz „braucht Internet", keinen Fehler.
+- **Auch die zwei Marktplätze betten die Videos ein** (seit 2026-09-28, Brief `docs/BRIEF_marktplaetze.md`):
+  PWA Toolpoint und family-projekt.de zeigen auf der Detailseite `apps/eigen-workflow-pdf/` das Erklärvideo aus
+  `assets/workfloh-pdf-quer.mp4`, hochkant `assets/workfloh-pdf-hochvoll.mp4`, Vorschaubild `assets/poster-de.jpg`.
+  **Wer diese Dateien umbenennt, zieht dort das Feld `video` in `assets/config/listings.js` nach** (beide Depots) —
+  sonst steht auf den Marktplätzen ein Video, das nicht lädt. Kopiert wird nichts.
 - Ladezeit-Regeln: Skill `seiten-bauregeln`. Beide Videos laden erst beim Antippen.
 
 ## Prüfen
