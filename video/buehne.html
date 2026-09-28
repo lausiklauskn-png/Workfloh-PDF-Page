@@ -36,10 +36,16 @@ html,body{margin:0;overflow:hidden;background:#101216;font-family:"DejaVu Sans",
 #kapitel .nr{display:inline-block;background:var(--rot);border-radius:12px;padding:10px 4px;margin-inline-end:14px}
 
 /* Hand und Klick-Ring */
-#hand{position:absolute;left:0;top:0;width:88px;height:110px;pointer-events:none;z-index:50;
-  transform-origin:16px 4px;filter:drop-shadow(6px 10px 8px rgba(0,0,0,.35));will-change:transform}
-#hand img{width:100%;height:100%;display:block;transition:transform .12s ease}
-#hand.drueckt img{transform:scale(.86) translate(-4px,-4px)}
+/* Zwei Hände (ChatGPT, Klaus 2026-09-28): „zeigen" (Seitenansicht) weist hin,
+   „tippen" (Handrücken mit W-FloH©) führt eine Aktion aus. Beim Wechsel dreht sie sich. */
+#hand{position:absolute;left:0;top:0;width:110px;pointer-events:none;z-index:50;
+  filter:drop-shadow(6px 10px 8px rgba(30,40,70,.30));will-change:transform}
+#hand .dreh{position:relative;transition:transform .15s ease-in}
+#hand.dreht .dreh{transform:scaleX(0)}
+#hand img{position:absolute;left:0;top:0;width:110px;display:none;transition:transform .12s ease}
+#hand[data-art="zeigen"] .zeigen,#hand[data-art="tippen"] .tippen{display:block}
+#hand .zeigen{transform-origin:5px 5px}#hand .tippen{transform-origin:5px 4px}
+#hand.drueckt img{transform:scale(.86)}
 .ring{position:absolute;width:20px;height:20px;margin:-10px 0 0 -10px;border-radius:50%;border:5px solid var(--rot);
   pointer-events:none;z-index:49;animation:ring .6s ease-out forwards}
 @keyframes ring{from{transform:scale(.3);opacity:1}to{transform:scale(3.4);opacity:0}}
@@ -71,7 +77,7 @@ html,body{margin:0;overflow:hidden;background:#101216;font-family:"DejaVu Sans",
   </div>
   <div id="kapitel"></div>
   <div id="band"><div id="bandText"></div></div>
-  <div id="hand"><img src="hand.svg" alt=""></div>
+  <div id="hand" data-art="zeigen"><div class="dreh"><img class="zeigen" src="hand-zeigen.png" alt=""><img class="tippen" src="hand-tippen.png" alt=""></div></div>
   <div id="karte"></div>
 </div>
 <script>
@@ -103,7 +109,16 @@ html,body{margin:0;overflow:hidden;background:#101216;font-family:"DejaVu Sans",
   const warte = ms => new Promise(r => setTimeout(r, ms));
   const hand = document.getElementById('hand');
   let hx = W * 0.8, hy = H + 200;          // Hand wartet unten rechts außerhalb
-  const setzeHand = (x, y) => { hx = x; hy = y; hand.style.transform = `translate(${x - 16}px,${y - 4}px) rotate(${hoch ? -4 : -8}deg)`; };
+  // Fingerspitze im Bild (bei 110 px Breite), je Hand gemessen
+  const SPITZE = { zeigen: [5, 5], tippen: [5, 4] };
+  const setzeHand = (x, y) => { hx = x; hy = y; const [sx, sy] = SPITZE[hand.dataset.art]; hand.style.transform = `translate(${x - sx}px,${y - sy}px)`; };
+  // Wechsel zwischen den beiden Händen: kurz auf die Kante drehen, tauschen, zurückdrehen
+  async function art(neu) {
+    if (hand.dataset.art === neu) return;
+    hand.classList.add('dreht'); await warte(150);
+    hand.dataset.art = neu; setzeHand(hx, hy);
+    hand.classList.remove('dreht'); await warte(150);
+  }
   setzeHand(hx, hy);
 
   const B = window.B = {
@@ -119,7 +134,9 @@ html,body{margin:0;overflow:hidden;background:#101216;font-family:"DejaVu Sans",
       return { x: f.left + r.left * s, y: f.top + r.top * s, w: r.width * s, h: r.height * s };
     },
     // Hand gleitet auf einer weichen Kurve zum Ziel
+    art,
     async handZu(x, y, ms) {
+      if (hand.dataset.art !== 'zeigen') art('zeigen');   // unterwegs zeigt sie, dreht sich dabei zurück
       const x0 = hx, y0 = hy, dist = Math.hypot(x - x0, y - y0);
       ms = ms || Math.min(1300, Math.max(520, dist * 0.9));
       const cx = (x0 + x) / 2 + (y - y0) * 0.18, cy = (y0 + y) / 2 - Math.abs(x - x0) * 0.12 - 40;
@@ -134,6 +151,7 @@ html,body{margin:0;overflow:hidden;background:#101216;font-family:"DejaVu Sans",
       });
     },
     async druck() {
+      await art('tippen');                                  // zur Aktion dreht sie sich auf den Handrücken
       hand.classList.add('drueckt');
       const r = document.createElement('div'); r.className = 'ring'; r.style.left = hx + 'px'; r.style.top = hy + 'px';
       stage.appendChild(r); setTimeout(() => r.remove(), 700);
