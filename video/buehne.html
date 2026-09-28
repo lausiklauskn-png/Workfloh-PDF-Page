@@ -135,8 +135,9 @@ html,body{margin:0;overflow:hidden;background:#101216;font-family:"DejaVu Sans",
     },
     // Hand gleitet auf einer weichen Kurve zum Ziel
     art,
-    async handZu(x, y, ms) {
-      if (hand.dataset.art !== 'zeigen') art('zeigen');   // unterwegs zeigt sie, dreht sich dabei zurück
+    // haelt=true: die Hand führt gerade etwas aus (Ziehen) und bleibt beim Handrücken
+    async handZu(x, y, ms, haelt) {
+      if (!haelt && hand.dataset.art !== 'zeigen') art('zeigen');   // unterwegs zeigt sie, dreht sich dabei zurück
       const x0 = hx, y0 = hy, dist = Math.hypot(x - x0, y - y0);
       ms = ms || Math.min(1300, Math.max(520, dist * 0.9));
       const cx = (x0 + x) / 2 + (y - y0) * 0.18, cy = (y0 + y) / 2 - Math.abs(x - x0) * 0.12 - 40;

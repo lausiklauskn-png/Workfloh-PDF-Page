@@ -85,7 +85,7 @@ async function ziehe(sel, ddx, ddy) {
   const n = 24;
   for (let i = 1; i <= n; i++) {
     const nx = x + ddx * i / n, ny = y + ddy * i / n;
-    await page.evaluate(([x, y]) => B.handZu(x, y, 30), [nx, ny]);
+    await page.evaluate(([x, y]) => B.handZu(x, y, 30, true), [nx, ny]);   // Ziehen ist eine Aktion: Handrücken bleibt
     await page.mouse.move(nx, ny);
   }
   await warte(500); await page.mouse.up(); await warte(500);
