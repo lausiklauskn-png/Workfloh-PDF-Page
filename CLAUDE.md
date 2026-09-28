@@ -22,10 +22,13 @@ Ablauf, Bauweise, benannte Grenzen.
 - **Drei Sprachen:** wer das Drehbuch ändert, baut alle drei Videos neu
   (`--sprache=de|en|ru`); ein neuer Satz im Band braucht einen Eintrag in
   `video/texte.json`, sonst meldet die Aufnahme „[ohne Übersetzung]“.
-- **Hochkant (Kurzfassung, ~31 s):** `aufnahme.mjs --hoch`, Zeitraffer über
-  `tempo(f)`-Marken, die `schnitt.mjs` umrechnet. Wer das Drehbuch verlängert,
-  prüft die Länge wieder gegen 30 s. `tests/seite.mjs` misst, dass Gerät und Band
-  hochkant ganz im Bild liegen.
+- **Die 30-Sekunden-Kurzfassung ist von der Seite genommen** (Klaus 2026-09-28: „zu kurz und sagt zu wenig
+  aus"). Unter dem großen Video steht jetzt das GANZE Video hochkant (`#kurz`: schmal, mittig, Text darunter,
+  Quelle `workfloh-pdf-hochvoll*.mp4`). `aufnahme.mjs --hoch` gibt es noch; die Dateien liegen nicht mehr im Repo.
+- **Jede Erklärkarte trägt ein Bild aus der App, hochkant** (`assets/bilder/<de|en|ru>-<thema>.jpg`, 540×760,
+  wechselt mit der Sprache). Sieben sind Standbilder aus `workfloh-pdf-hochvoll*.mp4` (Sekunde 18 · 54 · 78 ·
+  104 · 120 · 162 · 186, `crop=1080:1520:0:120,scale=540:-2`), „Hilfe" ist ein Bildschirmfoto des Hilfe-Dialogs.
+  **Wer das Hochformat-Video neu schneidet, zieht die Bilder mit** — sonst zeigen sie eine alte App.
 - **Hochkant GANZ (`hochvoll`, Klaus 2026-09-28): „beim Drehen da weitermachen, wo das Querformat aufgehört
   hat, ohne Verzögerung".** `aufnahme.mjs --voll` nimmt dieselben Szenen wie quer hochkant auf;
   `schnitt.mjs hochvoll[-en|-ru]` bringt jede Szene auf die Länge derselben Szene im Querformat (braucht

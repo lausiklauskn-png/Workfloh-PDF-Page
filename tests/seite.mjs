@@ -1,6 +1,6 @@
 // Probe der Landingpage im echten Browser (Playwright, Chromium).
 //   node tests/seite.mjs
-// Dazu: Kurzfassung hochkant (Poster, Antippen, Herunterladen je Sprache) und die Bühne
+// Dazu: das ganze Video hochkant unter dem großen (Poster, Antippen, Herunterladen je Sprache) und die Bühne
 // hochkant (Gerät und Band ganz im Bild).
 // Misst: Deutsch als Vorgabe · Kapitel-Knöpfe aus den Marken · Wechsel DE/EN/RU
 // (Text, Poster, Video, Kapitelnamen) · Kapitel springt an die Stelle · Video lädt
@@ -88,12 +88,24 @@ try {
     fs.existsSync(path.join(WURZEL, `assets/workfloh-pdf-quer${s}.mp4`)) && fs.existsSync(path.join(WURZEL, `assets/kapitel-quer${s}.json`))) &&
     ['de', 'en', 'ru'].every(s => fs.existsSync(path.join(WURZEL, `assets/poster-${s}.jpg`))));
 
-  // 1b · Kurzfassung (hochkant): Poster da, Video erst beim Antippen, Datei zum Weiterschicken
-  ok('Kurzfassung: Poster steht da', await p.$eval('#kurzPoster', i => { i.loading = 'eager'; return true; }) &&
+  // 1b · Das ganze Video hochkant (Klaus 2026-09-28: die 30-s-Fassung ist raus): Poster da, Video erst beim Antippen
+  ok('Hochformat: Poster steht da', await p.$eval('#kurzPoster', i => { i.loading = 'eager'; return true; }) &&
     await p.waitForFunction(() => { const i = document.getElementById('kurzPoster'); return i.complete && i.naturalWidth > 0; }, null, { timeout: 5000 }).then(() => true, () => false));
-  ok('Kurzfassung: Herunterladen zeigt aufs deutsche Video', /workfloh-pdf-hoch\.mp4$/.test(await p.getAttribute('#kurzLaden', 'href')));
-  ok('für jede Sprache liegt die Kurzfassung samt Poster da', ['', '-en', '-ru'].every(s => fs.existsSync(path.join(WURZEL, `assets/workfloh-pdf-hoch${s}.mp4`))) &&
-    ['de', 'en', 'ru'].every(s => fs.existsSync(path.join(WURZEL, `assets/poster-hoch-${s}.jpg`))));
+  ok('Hochformat: Poster ist das ganze Video, nicht die Kurzfassung', /poster-hochvoll-de\.jpg$/.test(await p.getAttribute('#kurzPoster', 'src')));
+  ok('Hochformat: Herunterladen zeigt aufs ganze deutsche Hochkant-Video', /workfloh-pdf-hochvoll\.mp4$/.test(await p.getAttribute('#kurzLaden', 'href')));
+  ok('Hochformat: Dauer wie das Querformat', (await p.textContent('#kurzDauer')) === (await p.textContent('#dauer')));
+  ok('keine 30-Sekunden-Fassung mehr auf der Seite', !/workfloh-pdf-hoch[.-]|poster-hoch-|30 Sekunden/.test(fs.readFileSync(path.join(WURZEL, 'index.html'), 'utf8')));
+  const kb = await p.evaluate(() => { const k = document.getElementById('kurz').getBoundingClientRect(), m = document.querySelector('main').getBoundingClientRect(),
+    t = document.querySelector('#kurz h2').getBoundingClientRect(), b = document.getElementById('kurzBild').getBoundingClientRect();
+    return { breit: k.width, mitte: Math.abs((k.left + k.right) / 2 - (m.left + m.right) / 2), mainBreit: m.width, textUnter: t.top >= b.bottom - 1 }; });
+  ok('Hochformat: schmal und mittig, Text darunter', kb.breit <= 400 && kb.breit < kb.mainBreit && kb.mitte < 3 && kb.textUnter, JSON.stringify(kb));
+  // Bilder an den Erklärkarten: jede Karte eins, aus dem Hochformat der App, je Sprache
+  const BILDER = ['scannen', 'felder', 'ausfuellen', 'ausgeben', 'uebersetzen', 'suchen', 'ordnen', 'hilfe'];
+  const karten = await p.$$eval('#kann + .gitter section', s => s.map(x => { const i = x.querySelector('img.bild'); return i && i.getAttribute('src'); }));
+  ok('jede Erklärkarte trägt ein Bild', karten.length === 8 && karten.every(Boolean), JSON.stringify(karten));
+  ok('für jede Sprache liegen alle Bilder da', ['de', 'en', 'ru'].every(sp => BILDER.every(n => fs.existsSync(path.join(WURZEL, `assets/bilder/${sp}-${n}.jpg`)))));
+  await p.$$eval('img.bild', l => l.forEach(i => { i.loading = 'eager'; }));
+  ok('die Bilder laden wirklich', await p.waitForFunction(() => [...document.querySelectorAll('img.bild')].every(i => i.complete && i.naturalWidth > 0), null, { timeout: 8000 }).then(() => true, () => false));
 
   // 2 · Russisch
   await p.click('[data-sprache="ru"]');
@@ -105,9 +117,10 @@ try {
   ok('RU: <html lang="ru">', await p.getAttribute('html', 'lang') === 'ru');
   ok('RU: Chrome-Tipp russisch', /Chrome/.test(await p.textContent('.tipp')) && /браузере/.test(await p.textContent('.tipp')));
 
-  ok('RU: Kurzfassung — Poster und Herunterladen russisch', /poster-hoch-ru\.jpg$/.test(await p.getAttribute('#kurzPoster', 'src')) &&
-    /workfloh-pdf-hoch-ru\.mp4$/.test(await p.getAttribute('#kurzLaden', 'href')));
-  ok('RU: Kurzfassung — Text russisch', /секунд/.test(await p.textContent('#kurz')));
+  ok('RU: Hochformat — Poster und Herunterladen russisch', /poster-hochvoll-ru\.jpg$/.test(await p.getAttribute('#kurzPoster', 'src')) &&
+    /workfloh-pdf-hochvoll-ru\.mp4$/.test(await p.getAttribute('#kurzLaden', 'href')));
+  ok('RU: Hochformat — Text russisch', /вертикально/.test(await p.textContent('#kurz')));
+  ok('RU: Bilder an den Karten russisch', (await p.$$eval('img.bild', l => l.map(i => i.getAttribute('src')))).every(s => /bilder\/ru-/.test(s)));
 
   // 3 · Kapitel springt an die Stelle — im RU-Video
   const marken = JSON.parse(fs.readFileSync(path.join(WURZEL, 'assets/kapitel-quer-ru.json'), 'utf8'));
@@ -121,12 +134,12 @@ try {
   // Die echte Länge steht in den Marken: Schluss beginnt nach über drei Minuten
   ok('… das Video trägt mehr als drei Minuten Kapitel', marken[marken.length - 1].t > 180);
 
-  // 3b · Kurzfassung antippen: eigenes Video, russisch, nicht in einem Knopf
+  // 3b · Hochformat-Video antippen: eigenes Video, russisch, nicht in einem Knopf
   await p.click('#kurzBild');
   await p.waitForFunction(() => { const v = document.querySelector('#kurzVideo video'); return v && v.readyState >= 1; }, null, { timeout: 15000 }).catch(() => {});
   const kv = await p.evaluate(() => { const v = document.querySelector('#kurzVideo video'); return v && { src: v.getAttribute('src'), imKnopf: !!v.closest('button'), controls: v.controls }; });
-  ok('Kurzfassung: Antippen legt das RU-Hochkant-Video an', kv && /hoch-ru\.mp4$/.test(kv.src), JSON.stringify(kv));
-  ok('Kurzfassung: Video steht NICHT in einem Knopf, Bedienelemente an', kv && !kv.imKnopf && kv.controls, JSON.stringify(kv));
+  ok('Hochformat: Antippen legt das ganze RU-Hochkant-Video an', kv && /hochvoll-ru\.mp4$/.test(kv.src), JSON.stringify(kv));
+  ok('Hochformat: Video steht NICHT in einem Knopf, Bedienelemente an', kv && !kv.imKnopf && kv.controls, JSON.stringify(kv));
 
   // 4 · Wahl bleibt beim Neuladen
   await p.reload();
