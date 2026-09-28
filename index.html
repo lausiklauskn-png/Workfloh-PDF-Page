@@ -113,6 +113,7 @@
 <script>
 (() => {
   const VIDEO = { de: 'assets/workfloh-pdf-quer.mp4', en: 'assets/workfloh-pdf-quer-en.mp4', ru: 'assets/workfloh-pdf-quer-ru.mp4' };
+  const DAUER = { de: '3:44', en: '3:44', ru: '3:46' };
   const MARKEN = { de: 'assets/kapitel-quer.json', en: 'assets/kapitel-quer-en.json', ru: 'assets/kapitel-quer-ru.json' };
   const KAP = {
     de: { scannen: 'Scannen', einlesen: 'Einlesen', ausfuellen: 'Ausfüllen', ausgeben: 'Ausgeben', uebersetzen: 'Übersetzen', suchen: 'Suchen', ordnen: 'Ordnen', diaschau: 'Und noch mehr' },
@@ -207,7 +208,7 @@
     document.querySelectorAll('[data-sprache]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.sprache === sp)));
     texte(); markenLaden();
     if (video) { const lief = !video.paused; video.src = VIDEO[sp]; if (lief) video.play().catch(() => {}); }
-    else $('#poster').src = 'assets/poster-' + sp + '.jpg';
+    else { $('#poster').src = 'assets/poster-' + sp + '.jpg'; $('#dauer').textContent = DAUER[sp]; }
   }
 
   document.querySelectorAll('[data-sprache]').forEach(b => b.addEventListener('click', () => waehle(b.dataset.sprache)));

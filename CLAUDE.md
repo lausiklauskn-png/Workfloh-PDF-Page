@@ -24,6 +24,16 @@ Ablauf, Bauweise, benannte Grenzen.
   `video/texte.json`, sonst meldet die Aufnahme „[ohne Übersetzung]“.
 - Ladezeit-Regeln: Skill `seiten-bauregeln`. Das Video lädt erst beim Antippen.
 
+## Prüfen
+
+```bash
+node tests/seite.mjs    # Seite im echten Browser: Sprachen, Kapitel, Handy, Rechtliches
+```
+
+⚠ Chromium aus Playwright kann kein H.264. Für den Kapitel-Sprung liefert die
+Probe einen WebM-Stellvertreter gleicher Länge — gemessen wird die Seite, nicht
+das Video. Ob das MP4 spielt, sieht man im echten Chrome (Klaus' Sichttest).
+
 ## Netzweit
 
 Freibrief zum Selbst-Mergen · frisch von `origin/main` vor jeder Arbeit · Ton ·
