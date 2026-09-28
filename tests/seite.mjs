@@ -269,6 +269,15 @@ try {
   const tw = i => t.$eval(tk(i), e => e.getBoundingClientRect().width);
   await t.$eval(tk(1), e => e.scrollIntoView({ block: 'center' })); await t.waitForTimeout(200);
   const t0 = await tw(1);
+  // Maus am Tablet (Klaus 2026-09-28: „die Lupe kam, vergrößert hat nichts"): Chrome meldet dort oft (hover: none) —
+  // allein das Darüberfahren muss trotzdem vergrößern, ohne Klick und ohne Lupen-Zeiger
+  const keinHover = await t.evaluate(() => matchMedia('(hover: none)').matches);
+  ok('Tablet: die Probe steht wirklich in einer Lage ohne (hover: hover)', keinHover);
+  await t.mouse.move(5, 5); await t.hover(tk(2)); await t.waitForTimeout(400);
+  ok('Tablet mit Maus: Darüberfahren vergrößert — ohne Klick', (await tw(2)) > t0 * 1.12, `${await tw(2)}`);
+  ok('Tablet mit Maus: kein Lupen-Zeiger', await t.$eval(tk(2), e => getComputedStyle(e).cursor) !== 'zoom-in');
+  await t.mouse.move(5, 5); await t.waitForTimeout(400);
+  ok('Tablet mit Maus: Wegziehen macht sie wieder klein', Math.abs((await tw(2)) - t0) < 1);
   await t.tap(tk(1)); await t.waitForTimeout(400);
   ok('Tablet: Antippen vergrößert die Karte', (await tw(1)) > t0 * 1.12, `${t0} → ${await tw(1)}`);
   await t.tap(tk(2)); await t.waitForTimeout(400);
