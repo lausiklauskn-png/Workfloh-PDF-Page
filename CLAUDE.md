@@ -1,0 +1,33 @@
+# Workfloh PDF · Landingpage — Sitzungs-Anker
+
+Landingpage mit Erklärvideo für die App **Workfloh PDF** (Repo `Workflow-PDF`).
+Hier liegt **nicht** die App — wer an der App baut, ist im falschen Repo.
+
+**Zuerst lesen:** [`docs/PLAN_VIDEO.md`](docs/PLAN_VIDEO.md) — was entsteht,
+Ablauf, Bauweise, benannte Grenzen.
+
+## Was hier leicht kaputtgeht
+
+- **Die Musik liegt NICHT im Repo.** Pixabay erlaubt sie im Video, aber nicht
+  als Datei zum Weitergeben. Das Skript liest sie aus `MUSIK=…`. Kein `*.mp3`
+  committen (`.gitignore` sperrt es).
+- **Das Video wird gebaut, nicht von Hand geschnitten.** Ändert sich die App:
+  `node video/aufnahme.mjs`, dann `node video/schnitt.mjs`. Die App kommt aus
+  dem Nachbar-Klon `../Workflow-PDF`, **Stand `origin/main`**.
+- **Die Übersetzung im Video ist von Hand geschrieben** (Chromes Übersetzer
+  läuft headless nicht). Klaus hat das so entschieden (2026-09-28).
+- **Cache-Bump:** sobald es `sw.js` gibt, `CACHE_VERSION` erhöhen, wenn eine
+  Datei aus dem Vorrat sich ändert.
+- Ladezeit-Regeln: Skill `seiten-bauregeln`. Das Video lädt erst beim Antippen.
+
+## Netzweit
+
+Freibrief zum Selbst-Mergen · frisch von `origin/main` vor jeder Arbeit · Ton ·
+kein PII · Ehrlichkeit:
+**[`Sage-Protokol/docs/NETZWEIT.md`](https://github.com/lausiklauskn-png/Sage-Protokol/blob/main/docs/NETZWEIT.md)**
+
+```bash
+git fetch origin --quiet && git checkout -B <branch> origin/main
+git push -u origin refs/heads/<branch>:refs/heads/<branch>
+git diff --stat origin/main origin/<branch>     # leer = der PR wäre leer
+```
