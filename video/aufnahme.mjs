@@ -399,6 +399,11 @@ async function szeneOrdnen() {
   await tippe('[data-sortbox] summary', { nachher: 400 });
   await tippe('[data-sortbox] [data-sort]', { nachher: 200 });
   await app.selectOption('[data-sortbox] [data-sort]', 'erstellt');
+  // „Erstellungsdatum" öffnet sofort den Kalender (natives Fenster). Offen gelassen,
+  // hängt die Bildaufnahme danach: Diaschau und Schluss kamen unscharf oder gar nicht an.
+  await warte(600);
+  await page.keyboard.press('Escape');
+  await app.evaluate(() => { const a = document.activeElement; if (a && a.blur) a.blur(); });
   await page.keyboard.press('Escape');
   await page.evaluate(() => B.handWeg());
   await warte(2200);
