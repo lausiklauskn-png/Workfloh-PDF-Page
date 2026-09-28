@@ -67,6 +67,22 @@ try {
   ok('acht Kapitel-Knöpfe (ohne Anfang und Schluss)', kap.length === 8, JSON.stringify(kap));
   ok('Kapitel „Übersetzen" mit Zeit', kap.some(t => /^\d:\d\dÜbersetzen$/.test(t)), JSON.stringify(kap));
   ok('Poster steht da', await p.$eval('#poster', i => i.complete && i.naturalWidth > 0));
+  // Überblick: was die App kann, wie es ineinandergreift, gut zu wissen
+  ok('Überblick: acht Werkzeug-Karten', await p.$$eval('#kann + .gitter section', s => s.length) === 8);
+  ok('Überblick: fünf Schritte im Ablauf', await p.$$eval('.ablauf li', l => l.length) === 5);
+  ok('Überblick: vier Karten „Gut zu wissen"', await p.$$eval('#wissen + .gitter section', s => s.length) === 4);
+  ok('Überblick nennt Suchen, Ordnen, Ausgeben',
+    /Suchen/.test(await p.textContent('#kann + .gitter')) && /Ordnen/.test(await p.textContent('#kann + .gitter')) && /Ausgeben/.test(await p.textContent('#kann + .gitter')));
+  {
+    // Jeder Text der Seite hat eine englische UND eine russische Fassung (sonst bliebe Deutsch stehen)
+    const html = fs.readFileSync(path.join(WURZEL, 'index.html'), 'utf8');
+    const schluessel = [...new Set([...html.matchAll(/data-t="([^"]+)"/g)].map(m => m[1]))];
+    const block = sp => { const i = html.indexOf(`    ${sp}: {\n      titel`); return html.slice(i, html.indexOf('\n    }', i)); };
+    for (const sp of ['en', 'ru']) {
+      const b = block(sp), fehlt = schluessel.filter(k => !new RegExp(`[\\s{,]${k}: '`).test(b));
+      ok(`${sp.toUpperCase()}: jeder Seitentext hat eine Übersetzung`, fehlt.length === 0, fehlt.join(', '));
+    }
+  }
   ok('Video lädt NICHT vor dem Antippen', !geholt.some(u => u.endsWith('.mp4')) && !(await p.$('video')));
   ok('für jede Sprache liegen Video, Poster und Marken da', ['', '-en', '-ru'].every(s =>
     fs.existsSync(path.join(WURZEL, `assets/workfloh-pdf-quer${s}.mp4`)) && fs.existsSync(path.join(WURZEL, `assets/kapitel-quer${s}.json`))) &&
@@ -85,6 +101,7 @@ try {
   ok('RU: Titel russisch', /формуляр/i.test(await p.textContent('h1')));
   ok('RU: Poster russisch', /poster-ru\.jpg$/.test(await p.getAttribute('#poster', 'src')));
   ok('RU: Kapitel russisch', /Перевод/.test(await p.textContent('#kapitel')));
+  ok('RU: Überblick russisch', /Что умеет/.test(await p.textContent('#kann')) && /[а-я]/i.test(await p.textContent('.ablauf')) && /Полезно/.test(await p.textContent('#wissen')));
   ok('RU: <html lang="ru">', await p.getAttribute('html', 'lang') === 'ru');
   ok('RU: Chrome-Tipp russisch', /Chrome/.test(await p.textContent('.tipp')) && /браузере/.test(await p.textContent('.tipp')));
 

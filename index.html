@@ -49,7 +49,13 @@
   .fein{color:var(--grau);font-size:.92rem}
   .gitter{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:14px;margin:26px 0}
   .gitter section{background:var(--karte);border-radius:14px;padding:14px 16px;box-shadow:0 1px 6px rgba(0,0,0,.06);border-top:4px solid var(--rot)}
-  .gitter h2{font-size:1.05rem;margin:0 0 4px}
+  .gitter h3{font-size:1.05rem;margin:0 0 4px}
+  .gitter.klein section{border-top-color:#1a73e8}
+  .abschnitt{font-size:1.35rem;margin:30px 0 0}
+  .ablauf{display:flex;flex-wrap:wrap;gap:10px;list-style:none;padding:0;margin:14px 0 8px;counter-reset:s}
+  .ablauf li{counter-increment:s;flex:1 1 170px;background:var(--karte);border-radius:12px;padding:10px 14px;box-shadow:0 1px 6px rgba(0,0,0,.06);color:#353a44}
+  .ablauf li::before{content:counter(s);display:inline-grid;place-items:center;width:24px;height:24px;border-radius:50%;background:var(--rot);color:#fff;font-weight:700;font-size:.85rem;margin-right:8px}
+  .ablauf-p{margin:6px 0 0;color:#353a44}
   .gitter p{margin:0;color:#353a44}
   .kurz{display:flex;gap:18px;align-items:center;background:var(--karte);border-radius:14px;padding:14px 16px;margin:14px 0 26px;box-shadow:0 1px 6px rgba(0,0,0,.06)}
   .kurz-bild{position:relative;flex:0 0 auto;width:132px;aspect-ratio:9/16;border-radius:12px;overflow:hidden;background:#b3140f;border:0;padding:0;cursor:pointer}
@@ -110,11 +116,34 @@
     </div>
   </div>
 
+  <h2 class="abschnitt" id="kann" data-t="kannT">Was Workfloh PDF kann</h2>
   <div class="gitter">
-    <section><h2 data-t="k1">📷 Scannen</h2><p data-t="k1t">Foto machen, das Blatt wird gefunden und gerade gezogen.</p></section>
-    <section><h2 data-t="k2">🧩 Felder erkennen</h2><p data-t="k2t">Linien und Kästchen werden zu Feldern — ohne Internet.</p></section>
-    <section><h2 data-t="k3">✍️ Ausfüllen</h2><p data-t="k3t">Tippen, ankreuzen, unterschreiben — dann als PDF ausgeben oder teilen.</p></section>
-    <section><h2 data-t="k4">🌐 Übersetzen</h2><p data-t="k4t">Der Text kommt an dieselbe Stelle der Seite — Deutsch, Englisch, Russisch.</p></section>
+    <section><h3 data-t="k1">📷 Scannen</h3><p data-t="k1t">Foto machen — das Blatt wird gefunden, gerade gezogen und aufgehellt. Mehrere Seiten werden ein PDF, auf Wunsch durchsuchbar.</p></section>
+    <section><h3 data-t="k2">🧩 Felder erkennen</h3><p data-t="k2t">Linien, Kästchen und graue Flächen werden zu Feldern — ohne Internet. Fehlt eines, setzen Sie es selbst.</p></section>
+    <section><h3 data-t="k3">✍️ Ausfüllen</h3><p data-t="k3t">Tippen, ankreuzen, Datum aus dem Kalender, unterschreiben. E-Mail, Telefon und Internetadressen werden zu Links.</p></section>
+    <section><h3 data-t="k5">📤 Ausgeben &amp; Teilen</h3><p data-t="k5t">Als festes PDF, als ausfüllbares PDF, als leere Vorlage oder als Webseite — teilen, herunterladen oder drucken.</p></section>
+    <section><h3 data-t="k4">🌐 Übersetzen</h3><p data-t="k4t">Deutsch, Englisch, Russisch: der Text kommt an dieselbe Stelle der Seite, Bilder und Farben bleiben. Große Dokumente gehen in Teilen.</p></section>
+    <section><h3 data-t="k6">🔎 Suchen</h3><p data-t="k6t">Findet Wörter im Namen, in den Feldern und im Text der Seiten und zeigt die Fundstelle. Auf Wunsch auch nach Bedeutung und per Spracheingabe.</p></section>
+    <section><h3 data-t="k7">🗂️ Ordnen</h3><p data-t="k7t">Ordner, Sortieren nach Name, Datum, Größe oder Seitenzahl. Mehrere auswählen, auf einen Ordner ziehen, einen ganzen Ordner als ZIP oder als ein PDF ausgeben.</p></section>
+    <section><h3 data-t="k8">📘 Hilfe an Bord</h3><p data-t="k8t">Handbuch, Erklärvideo und ein erfundenes Beispiel-Formular zum Ausprobieren — ganz ohne eigene Daten.</p></section>
+  </div>
+
+  <h2 class="abschnitt" id="ablauf" data-t="ablaufT">So greift alles ineinander</h2>
+  <ol class="ablauf">
+    <li data-t="a1"><b>Einlesen</b> — PDF, Foto oder ein ganzer Ordner</li>
+    <li data-t="a2"><b>Felder</b> — erkennen lassen oder selbst setzen</li>
+    <li data-t="a3"><b>Ausfüllen</b> — am Tablet auch mit dem Finger</li>
+    <li data-t="a4"><b>Ausgeben</b> — teilen, drucken, ablegen</li>
+    <li data-t="a5"><b>Wiederfinden</b> — Suche und Ordner</li>
+  </ol>
+  <p class="ablauf-p" data-t="ablaufP">Übersetzen passt an jeder Stelle hinein: ein fremdsprachiges Formular übersetzen, in der eigenen Sprache ausfüllen — und die Einträge wandern zurück ins Original.</p>
+
+  <h2 class="abschnitt" id="wissen" data-t="wissenT">Gut zu wissen</h2>
+  <div class="gitter klein">
+    <section><h3 data-t="v1">🔒 Bleibt auf dem Gerät</h3><p data-t="v1t">Ihre Dokumente werden nicht hochgeladen. Kein Konto, keine Anmeldung.</p></section>
+    <section><h3 data-t="v2">📶 Läuft ohne Internet</h3><p data-t="v2t">Nach dem ersten Öffnen offline nutzbar und wie eine App installierbar.</p></section>
+    <section><h3 data-t="v3">🤖 KI nur, wenn Sie wollen</h3><p data-t="v3t">Mit eigenem Schlüssel und erst nach Ihrer Bestätigung. Vorgabe: Mistral (EU).</p></section>
+    <section><h3 data-t="v4">🗣 Vier Sprachen</h3><p data-t="v4t">Die Oberfläche spricht Deutsch, English, Русский und العربية.</p></section>
   </div>
 
   <div class="tipp">
@@ -146,10 +175,39 @@
       titel: 'Scan, fill in and translate forms — on your own device',
       unter: 'Free, no account. Your documents stay on your device. The video shows how it works in just under four minutes.',
       appOeffnen: 'Open Workfloh PDF →', appFein: 'Runs in the browser and can be installed like an app.',
-      k1: '📷 Scan', k1t: 'Take a photo — the sheet is found and straightened.',
-      k2: '🧩 Detect fields', k2t: 'Lines and boxes become fields — without internet.',
-      k3: '✍️ Fill in', k3t: 'Type, tick, sign — then export or share as a PDF.',
-      k4: '🌐 Translate', k4t: 'The text lands in the same place on the page — German, English, Russian.',
+      kannT: 'What Workfloh PDF can do',
+      k1: '📷 Scan',
+      k1t: 'Take a photo — the sheet is found, straightened and brightened. Several pages become one PDF, searchable if you like.',
+      k2: '🧩 Detect fields',
+      k2t: 'Lines, boxes and grey areas become fields — without internet. If one is missing, you place it yourself.',
+      k3: '✍️ Fill in',
+      k3t: 'Type, tick, pick a date from the calendar, sign. E-mail, phone and web addresses become links.',
+      k5: '📤 Export &amp; share',
+      k5t: 'As a flat PDF, a fillable PDF, a blank template or a web page — share, download or print.',
+      k4: '🌐 Translate',
+      k4t: 'German, English, Russian: the text lands in the same place on the page, images and colours stay. Large documents go in parts.',
+      k6: '🔎 Search',
+      k6t: 'Finds words in the name, the fields and the page text and shows where. Optionally by meaning and by voice input.',
+      k7: '🗂️ Organise',
+      k7t: 'Folders, sorting by name, date, size or page count. Select several, drag them onto a folder, export a whole folder as a ZIP or as one PDF.',
+      k8: '📘 Help on board',
+      k8t: 'Handbook, explainer video and a made-up sample form to try out — no personal data needed.',
+      ablaufT: 'How it all fits together',
+      a1: '<b>Import</b> — PDF, photo or a whole folder',
+      a2: '<b>Fields</b> — detect them or place them yourself',
+      a3: '<b>Fill in</b> — with your finger on a tablet too',
+      a4: '<b>Export</b> — share, print, file away',
+      a5: '<b>Find again</b> — search and folders',
+      ablaufP: 'Translation fits in at any point: translate a form in a foreign language, fill it in in your own — and the entries move back into the original.',
+      wissenT: 'Good to know',
+      v1: '🔒 Stays on your device',
+      v1t: 'Your documents are not uploaded. No account, no sign-up.',
+      v2: '📶 Works without internet',
+      v2t: 'Usable offline after the first visit and installable like an app.',
+      v3: '🤖 AI only if you want it',
+      v3t: 'With your own key and only after you confirm. Default: Mistral (EU).',
+      v4: '🗣 Four languages',
+      v4t: 'The interface speaks Deutsch, English, Русский and العربية.',
       tippT: 'Tip: translate documents in the Chrome browser',
       tippP: 'Chrome’s built-in translator gave good results for documents. The app offers the “Translate with Chrome” route for this.',
       recht: 'Legal notice & privacy', musik: 'Music in the video: “Friends” by paulyudin, via Pixabay (Pixabay licence).',
@@ -161,10 +219,39 @@
       titel: 'Сканировать, заполнять и переводить формуляры — на своём устройстве',
       unter: 'Бесплатно, без регистрации. Документы остаются на устройстве. Видео за неполные четыре минуты показывает, как это работает.',
       appOeffnen: 'Открыть Workfloh PDF →', appFein: 'Работает в браузере, можно установить как приложение.',
-      k1: '📷 Сканирование', k1t: 'Сфотографируйте — лист найдётся и выровняется.',
-      k2: '🧩 Поиск полей', k2t: 'Линии и клетки становятся полями — без интернета.',
-      k3: '✍️ Заполнение', k3t: 'Печатать, отмечать, подписывать — затем сохранить или отправить PDF.',
-      k4: '🌐 Перевод', k4t: 'Текст встаёт на то же место страницы — немецкий, английский, русский.',
+      kannT: 'Что умеет Workfloh PDF',
+      k1: '📷 Сканирование',
+      k1t: 'Сфотографируйте — лист найдётся, выровняется и станет светлее. Несколько страниц — один PDF, при желании с поиском по тексту.',
+      k2: '🧩 Поиск полей',
+      k2t: 'Линии, клетки и серые области становятся полями — без интернета. Если поля не хватает, поставьте его сами.',
+      k3: '✍️ Заполнение',
+      k3t: 'Печатать, отмечать, выбирать дату в календаре, подписывать. E-mail, телефон и веб-адреса становятся ссылками.',
+      k5: '📤 Экспорт и отправка',
+      k5t: 'Как готовый PDF, заполняемый PDF, пустой шаблон или веб-страница — отправить, скачать или распечатать.',
+      k4: '🌐 Перевод',
+      k4t: 'Немецкий, английский, русский: текст встаёт на то же место страницы, картинки и цвета остаются. Большие документы — по частям.',
+      k6: '🔎 Поиск',
+      k6t: 'Находит слова в названии, в полях и в тексте страниц и показывает место. По желанию — и по смыслу, и голосом.',
+      k7: '🗂️ Порядок',
+      k7t: 'Папки, сортировка по имени, дате, размеру или числу страниц. Выбрать несколько, перетащить в папку, выгрузить папку как ZIP или один PDF.',
+      k8: '📘 Помощь внутри',
+      k8t: 'Руководство, видео и придуманный образец формы для пробы — без своих данных.',
+      ablaufT: 'Как всё связано',
+      a1: '<b>Загрузка</b> — PDF, фото или целая папка',
+      a2: '<b>Поля</b> — найти автоматически или поставить самому',
+      a3: '<b>Заполнение</b> — на планшете и пальцем',
+      a4: '<b>Экспорт</b> — отправить, распечатать, сохранить',
+      a5: '<b>Найти снова</b> — поиск и папки',
+      ablaufP: 'Перевод встраивается в любом месте: перевести форму на чужом языке, заполнить на своём — и записи вернутся в оригинал.',
+      wissenT: 'Полезно знать',
+      v1: '🔒 Остаётся на устройстве',
+      v1t: 'Документы никуда не загружаются. Без аккаунта и регистрации.',
+      v2: '📶 Работает без интернета',
+      v2t: 'После первого открытия работает офлайн, устанавливается как приложение.',
+      v3: '🤖 ИИ — только по желанию',
+      v3t: 'Со своим ключом и только после подтверждения. По умолчанию Mistral (EU).',
+      v4: '🗣 Четыре языка',
+      v4t: 'Интерфейс: Deutsch, English, Русский и العربية.',
       tippT: 'Совет: документы лучше переводить в браузере Chrome',
       tippP: 'Встроенный переводчик Chrome хорошо справился с документами. В приложении для этого есть путь «Перевести с Chrome».',
       recht: 'Выходные данные и защита данных (на немецком)', musik: 'Музыка в видео: «Friends», paulyudin, Pixabay (лицензия Pixabay).',
