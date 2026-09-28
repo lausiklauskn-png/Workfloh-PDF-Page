@@ -26,6 +26,10 @@ Ablauf, Bauweise, benannte Grenzen.
   `tempo(f)`-Marken, die `schnitt.mjs` umrechnet. Wer das Drehbuch verlängert,
   prüft die Länge wieder gegen 30 s. `tests/seite.mjs` misst, dass Gerät und Band
   hochkant ganz im Bild liegen.
+- **Die App verlinkt direkt auf die Videos** (Workflow PDF, Hilfe → 🎬 Erklärvideo, seit 2026-09-28):
+  `assets/workfloh-pdf-quer{,-en,-ru}.mp4` und `assets/poster-{de,en,ru}.jpg`. **Wer eine dieser Dateien
+  umbenennt oder verschiebt, bricht den Knopf in der App** — dort `videoFuer()` in `assets/app.js` und
+  `tests/video.mjs` mitziehen. Die App zeigt dann nur den Satz „braucht Internet", keinen Fehler.
 - Ladezeit-Regeln: Skill `seiten-bauregeln`. Beide Videos laden erst beim Antippen.
 
 ## Prüfen
