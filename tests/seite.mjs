@@ -240,6 +240,27 @@ try {
 
   // 6 · Bühne hochkant: das Gerät und das Band liegen ganz im Bild (1080×1920).
   // Bis 2026-09-28 stand der Zoom fest auf 2,05 — das Gerät endete bei 1957 px.
+  // 5b2 · Schmales Fenster 700 px mit Maus: dort stoßen die Karten an den Rand — sie wachsen zur Mitte hin
+  const sm = await browser.newContext({ viewport: { width: 700, height: 800 }, locale: 'de-DE' });
+  const s7 = await sm.newPage(); await s7.goto(URL0); await s7.waitForTimeout(300);
+  const rand = [];
+  for (const sel of ['#kann + .gitter section:nth-child(1)', '#kann + .gitter section:nth-child(2)']) {
+    await s7.$eval(sel, e => e.scrollIntoView({ block: 'center' })); await s7.hover(sel); await s7.waitForTimeout(400);
+    rand.push(await s7.$eval(sel, e => { const r = e.getBoundingClientRect(); return { l: r.left, r: r.right, w: r.width }; }));
+  }
+  ok('700 px: beide Randkarten wachsen und bleiben im Fenster', rand.every(r => r.l >= 0 && r.r <= 700 && r.w > 280), JSON.stringify(rand));
+  await sm.close();
+  // 5b3 · Großes Handy 560 px: auch dort einzeln untereinander, Bild groß
+  const gh = await browser.newContext({ viewport: { width: 560, height: 900 }, isMobile: true, hasTouch: true, locale: 'de-DE' });
+  const g5 = await gh.newPage(); await g5.goto(URL0); await g5.waitForTimeout(300);
+  const g5k = await g5.$$eval('#kann + .gitter section', l => l.map(x => ({ l: Math.round(x.getBoundingClientRect().left), b: x.querySelector('img.bild').getBoundingClientRect().width })));
+  ok('560 px: die Karten stehen einzeln, das Bild ist groß', new Set(g5k.map(k => k.l)).size === 1 && g5k.every(k => k.b > 300), JSON.stringify(g5k.slice(0, 3)));
+  await g5.$eval('#kann + .gitter section', e => e.scrollIntoView({ block: 'center' }));
+  const g5w = await g5.$eval('#kann + .gitter section', e => e.getBoundingClientRect().width);
+  await g5.tap('#kann + .gitter section'); await g5.waitForTimeout(400);
+  ok('560 px: Antippen vergrößert nicht', Math.abs((await g5.$eval('#kann + .gitter section', e => e.getBoundingClientRect().width)) - g5w) < 1);
+  await gh.close();
+
   // 5c · Tablet quer mit dem Finger (Klaus 2026-09-28): Antippen vergrößert, noch einmal verkleinert, eine andere nimmt es mit
   const tab = await browser.newContext({ viewport: { width: 1024, height: 700 }, hasTouch: true, isMobile: false, locale: 'de-DE' });
   const t = await tab.newPage();

@@ -395,7 +395,7 @@
     }
     kurz.play().catch(() => {});
   }
-  /* Karten wachsen: Ursprung zur Mitte der Seite hin, damit eine Randkarte nicht über den Rand wächst.
+  /* Karten wachsen (nur ab 600 px, das regelt das CSS): Ursprung zur Mitte der Seite hin, damit eine Randkarte nicht über den Rand wächst.
      Antippen (Touch, ab 600 px) vergrößert und verkleinert; eine andere Karte nimmt die Vergrößerung mit. */
   (function kartenWachsen() {
     const karten = [...document.querySelectorAll('.gitter section')];
@@ -409,7 +409,7 @@
       k.addEventListener('pointerenter', () => ursprung(k));
       k.addEventListener('pointerdown', e => { zeiger = e.pointerType; });
       k.addEventListener('click', e => {
-        if (window.innerWidth < 600 || zeiger === 'mouse' || e.target.closest('a,button')) return;
+        if (zeiger === 'mouse' || e.target.closest('a,button')) return;
         ursprung(k);
         const an = !k.classList.contains('gross');
         karten.forEach(x => x.classList.remove('gross'));
