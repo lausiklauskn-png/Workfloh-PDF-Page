@@ -84,10 +84,10 @@ if (/^quer(-\w+)?$/.test(NAME)) {
   execFileSync(FF, ['-y', '-hide_banner', '-loglevel', 'error', '-ss', '2.5', '-i', aus, '-frames:v', '1', '-vf', 'scale=1280:-2', '-q:v', '4',
     path.join(HIER, '..', 'assets', `poster-${sp}.jpg`)], { stdio: 'inherit' });
 }
-// Hochkant: kleines Poster aus der Titelkarte (1,3 s), 360 px breit
+// Hochkant: Poster aus der Titelkarte (1,3 s), 720 px breit — es steht auch hochkant auf der großen Bühne (Tablet)
 if (/^hoch(-\w+)?$/.test(NAME)) {
   const sp = NAME === 'hoch' ? 'de' : NAME.slice(5);
-  execFileSync(FF, ['-y', '-hide_banner', '-loglevel', 'error', '-ss', '1.3', '-i', aus, '-frames:v', '1', '-vf', 'scale=360:-2', '-q:v', '5',
+  execFileSync(FF, ['-y', '-hide_banner', '-loglevel', 'error', '-ss', '1.3', '-i', aus, '-frames:v', '1', '-vf', 'scale=720:-2', '-q:v', '4',
     path.join(HIER, '..', 'assets', `poster-hoch-${sp}.jpg`)], { stdio: 'inherit' });
 }
 console.log(`${aus}: ${dauer.toFixed(1)} s, ${klicks.length} Klicks, ${(fs.statSync(aus).size / 1e6).toFixed(1)} MB`);
