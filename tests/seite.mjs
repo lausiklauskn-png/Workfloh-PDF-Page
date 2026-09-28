@@ -216,6 +216,22 @@ try {
     return { links: r.left, rechts: r.right, unten: r.bottom, bandOben: t.top, bandUnten: t.bottom }; });
   ok('Bühne hochkant: Gerät ganz im Bild', g.links >= 0 && g.rechts <= 1080 && g.unten <= 1920, JSON.stringify(g));
   ok('Bühne hochkant: Band unter dem Gerät und im Bild', g.bandOben > g.unten && g.bandUnten <= 1900, JSON.stringify(g));
+  // 6b · Die Bühne rollt NICHT mit (Klaus 2026-09-28: Band hochkant links abgeschnitten). Rollt die App im iframe
+  // ein Element ins Bild, während die Kamera zoomt, rollte #stage (overflow:hidden) mit — samt Band, 915 px.
+  await bp.evaluate(() => { const g = document.getElementById('geraet').getBoundingClientRect(); B.zoom({ x: g.x, y: g.y + g.height * 0.5, w: g.width, h: g.height * 0.3 }, 1.5); });
+  await bp.waitForTimeout(1300);
+  const roll = await bp.evaluate(() => { const d = document.createElement('div'); d.style.cssText = 'position:absolute;left:1500px;top:2600px;width:10px;height:10px';
+    document.getElementById('kamera').appendChild(d); d.scrollIntoView({ block: 'center', inline: 'center' });
+    const s = document.getElementById('stage'), t = document.getElementById('bandText').getBoundingClientRect();
+    return { sl: s.scrollLeft, st: s.scrollTop, links: t.left, rechts: t.right }; });
+  ok('Bühne rollt beim Zoom nicht mit, das Band bleibt ganz im Bild', roll.sl === 0 && roll.st === 0 && roll.links >= 0 && roll.rechts <= 1080, JSON.stringify(roll));
+  // 6c · Weißer Kreisschatten hinter dem roten Floh (Klaus 2026-09-28: rot auf Rot kaum zu sehen) — wie im Handbuch
+  bp.evaluate(() => B.karte('<div class="floh"></div><h1>Workfloh <span>PDF</span></h1>', '', '', 3000)).catch(() => {});
+  await bp.waitForSelector('#karte .floh', { timeout: 5000 }).catch(() => {});
+  const fl = await bp.evaluate(() => { const f = document.querySelector('#karte .floh'); if (!f) return null;
+    const vor = getComputedStyle(f, '::before'), nach = getComputedStyle(f, '::after'), r = f.getBoundingClientRect();
+    return { kreis: vor.content !== 'none' ? vor.backgroundImage : 'nicht gezeichnet', kreisIn: vor.inset || vor.top, floh: nach.content !== 'none' ? nach.backgroundImage : 'nicht gezeichnet', b: r.width }; });
+  ok('Titelkarte: weißer Kreisschatten hinter dem Floh, der Floh darüber', !!fl && /radial-gradient\(.*rgba\(255, 255, 255/.test(fl.kreis) && /w-floh/.test(fl.floh) && /-/.test(fl.kreisIn), JSON.stringify(fl));
 } finally { await browser.close(); srv.close(); }
 console.log(`${gruen} grün · ${rot} ROT`);
 process.exit(rot ? 1 : 0);
