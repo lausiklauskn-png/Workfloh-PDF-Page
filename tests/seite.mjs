@@ -137,6 +137,7 @@ try {
   // 5 · Handy 360 px, Englisch per Browser-Sprache
   const h = await browser.newContext({ viewport: { width: 360, height: 740 }, locale: 'en-GB', isMobile: true, hasTouch: true });
   const q = await h.newPage();
+  const fehler2 = []; q.on('pageerror', e => fehler2.push(e.message));
   await q.goto(URL0);
   await q.waitForTimeout(500);
   ok('Handy: Englisch aus der Browser-Sprache', await q.getAttribute('[data-sprache="en"]', 'aria-pressed') === 'true');
@@ -144,6 +145,35 @@ try {
   ok('Handy: keine seitliche Überbreite', breite <= 360, `scrollWidth ${breite}`);
   const knopf = await q.$eval('.abspielen i', e => e.getBoundingClientRect().width);
   ok('Handy: Abspielknopf groß genug', knopf >= 44, `${knopf}`);
+  // 5b · Lage des Geräts (Klaus 2026-09-28): hochkant die Hochkant-Fassung, quer das ganze Video —
+  // von selbst, beim Laden und beim Drehen. Das Handy hier steht hochkant (360 × 740).
+  const lage = () => q.evaluate(() => ({ hoch: document.documentElement.classList.contains('hochkant'),
+    poster: document.getElementById('poster') && document.getElementById('poster').getAttribute('src'),
+    dauer: document.getElementById('dauer') && document.getElementById('dauer').textContent,
+    video: document.querySelector('#buehne video') && document.querySelector('#buehne video').getAttribute('src'),
+    kapitel: getComputedStyle(document.getElementById('kapitel')).display !== 'none',
+    hinweis: !document.getElementById('hochHinweis').hidden && document.getElementById('hochHinweis').getBoundingClientRect().height > 0,
+    buehne: (r => ({ w: r.width, h: r.height, unten: r.bottom - window.scrollY }))(document.getElementById('buehne').getBoundingClientRect()) }));
+  let L = await lage();
+  ok('Hochkant: die Seite erkennt es von selbst', L.hoch, JSON.stringify(L));
+  ok('Hochkant: Poster und Länge der Hochkant-Fassung', /poster-hoch-en\.jpg$/.test(L.poster) && L.dauer === '0:31', JSON.stringify(L));
+  ok('Hochkant: keine Kapitel, dafür der Hinweis aufs Querhalten', !L.kapitel && L.hinweis, JSON.stringify(L));
+  ok('Hochkant: die Bühne steht hochkant und passt ins Fenster', L.buehne.h > L.buehne.w && L.buehne.h <= 740, JSON.stringify(L.buehne));
+  await q.click('#abspielen');
+  await q.waitForFunction(() => document.querySelector('#buehne video'), null, { timeout: 5000 }).catch(() => {});
+  L = await lage();
+  ok('Hochkant: Abspielen legt das Hochkant-Video an', /workfloh-pdf-hoch-en\.mp4$/.test(L.video || ''), JSON.stringify(L));
+  await q.setViewportSize({ width: 740, height: 360 });
+  await q.waitForFunction(() => !document.documentElement.classList.contains('hochkant'), null, { timeout: 3000 }).catch(() => {});
+  L = await lage();
+  ok('Quer gedreht: das Video wechselt auf das ganze Video', /workfloh-pdf-quer-en\.mp4$/.test(L.video || ''), JSON.stringify(L));
+  ok('Quer gedreht: Kapitel da, Hinweis weg', L.kapitel && !L.hinweis, JSON.stringify(L));
+  await q.setViewportSize({ width: 360, height: 740 });
+  await q.waitForFunction(() => document.documentElement.classList.contains('hochkant'), null, { timeout: 3000 }).catch(() => {});
+  L = await lage();
+  ok('Zurück hochkant: wieder das Hochkant-Video', /workfloh-pdf-hoch-en\.mp4$/.test(L.video || ''), JSON.stringify(L));
+  ok('Hochkant: keine Seitenfehler beim Drehen', fehler2.length === 0, fehler2.join(' | '));
+
   ok('Impressum verlinkt', !!(await q.$('footer a[href="impressum.html"]')));
   const imp = await q.goto(URL0 + 'impressum.html');
   ok('Impressum antwortet und nennt die Musik', imp.ok() && /Pixabay/.test(await q.textContent('body')) && /§ 5 DDG/.test(await q.textContent('body')));

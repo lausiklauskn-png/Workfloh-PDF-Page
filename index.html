@@ -71,6 +71,11 @@
   .tipp p{margin:0}
   footer{border-top:1px solid #dde0e6;padding:18px 0 34px;color:var(--grau);font-size:.9rem}
   footer a{margin-right:14px}
+  /* Hochkant (Klaus 2026-09-28): die Bühne zeigt die Hochkant-Fassung, von selbst nach der Lage des Geräts */
+  .hochkant .buehne{aspect-ratio:9/16;width:min(100%,calc(78vh * 9 / 16));margin:0 auto}
+  .hochkant .kapitel,.hochkant #kurzBild,.hochkant #kurzVideo{display:none}
+  .hoch-hinweis{margin:10px 0 0;color:var(--grau);font-size:.95rem;text-align:center}
+  .hoch-hinweis[hidden]{display:none}
   @media (max-width:560px){.kopf img{width:36px;height:36px}.marke{font-size:1.05rem}.sprachen button{min-width:40px}.abspielen i{width:68px;height:68px}.abspielen i::after{border-left-width:24px;border-top-width:15px;border-bottom-width:15px}}
 </style>
 </head>
@@ -99,6 +104,7 @@
     <span class="dauer" id="dauer">3:44</span>
   </div>
   <ul class="kapitel" id="kapitel" aria-label="Kapitel"></ul>
+  <p class="hoch-hinweis" id="hochHinweis" data-t="hochHinweis" hidden>Hochkant läuft die Kurzfassung (30 Sekunden). Für das ganze Video mit Kapiteln das Gerät quer halten.</p>
 
   <div class="los">
     <a class="knopf" href="https://lausiklauskn-png.github.io/Workflow-PDF/" data-t="appOeffnen">Workfloh PDF öffnen →</a>
@@ -107,7 +113,7 @@
 
   <div class="kurz" id="kurz">
     <button type="button" class="kurz-bild" id="kurzBild" aria-label="Kurzfassung abspielen">
-      <img id="kurzPoster" src="assets/poster-hoch-de.jpg" alt="" width="360" height="640" loading="lazy"><span class="play" aria-hidden="true">▶</span>
+      <img id="kurzPoster" src="assets/poster-hoch-de.jpg" alt="" width="720" height="1280" loading="lazy"><span class="play" aria-hidden="true">▶</span>
     </button>
     <div>
       <h2 data-t="kurzT">Kurzfassung: 30 Sekunden hochkant</h2>
@@ -163,6 +169,7 @@
 (() => {
   const VIDEO = { de: 'assets/workfloh-pdf-quer.mp4', en: 'assets/workfloh-pdf-quer-en.mp4', ru: 'assets/workfloh-pdf-quer-ru.mp4' };
   const DAUER = { de: '3:44', en: '3:44', ru: '3:46' };
+  const DAUER_HOCH = { de: '0:31', en: '0:31', ru: '0:32' };
   const KURZ = { de: 'assets/workfloh-pdf-hoch.mp4', en: 'assets/workfloh-pdf-hoch-en.mp4', ru: 'assets/workfloh-pdf-hoch-ru.mp4' };
   const MARKEN = { de: 'assets/kapitel-quer.json', en: 'assets/kapitel-quer-en.json', ru: 'assets/kapitel-quer-ru.json' };
   const KAP = {
@@ -211,6 +218,7 @@
       tippT: 'Tip: translate documents in the Chrome browser',
       tippP: 'Chrome’s built-in translator gave good results for documents. The app offers the “Translate with Chrome” route for this.',
       recht: 'Legal notice & privacy', musik: 'Music in the video: “Friends” by paulyudin, via Pixabay (Pixabay licence).',
+      hochHinweis: 'Held upright, the short version plays (30 seconds). Turn the device sideways for the full video with chapters.',
       spielen: 'Play video', kapitel: 'Chapters',
       kurzT: 'Short version: 30 seconds, portrait', kurzP: 'Scan, fill in, translate — to send on via WhatsApp or as a status.',
       kurzLaden: '⬇ Download video', kurzSpielen: 'Play short version'
@@ -255,6 +263,7 @@
       tippT: 'Совет: документы лучше переводить в браузере Chrome',
       tippP: 'Встроенный переводчик Chrome хорошо справился с документами. В приложении для этого есть путь «Перевести с Chrome».',
       recht: 'Выходные данные и защита данных (на немецком)', musik: 'Музыка в видео: «Friends», paulyudin, Pixabay (лицензия Pixabay).',
+      hochHinweis: 'Вертикально идёт короткая версия (30 секунд). Для полного видео с главами поверните устройство горизонтально.',
       spielen: 'Смотреть видео', kapitel: 'Главы',
       kurzT: 'Коротко: 30 секунд, вертикально', kurzP: 'Сканировать, заполнить, перевести — чтобы переслать в WhatsApp или поставить в статус.',
       kurzLaden: '⬇ Скачать видео', kurzSpielen: 'Смотреть короткое видео'
@@ -298,11 +307,33 @@
     kapitelZeigen();
   }
 
+  // Lage des Geräts (Klaus 2026-09-28): hochkant läuft die Hochkant-Fassung, quer das ganze Video.
+  // Von selbst beim Laden UND beim Drehen — nicht im Vollbild (dort dreht der Browser das Video
+  // selbst, ein Wechsel der Quelle finge von vorn an), dafür beim Verlassen des Vollbilds.
+  const LAGE = matchMedia('(orientation: portrait)');
+  const hoch = () => LAGE.matches;
+  const quelle = () => (hoch() ? KURZ : VIDEO)[sprache];
+  function buehneStand() {
+    $('#poster').src = hoch() ? 'assets/poster-hoch-' + sprache + '.jpg' : 'assets/poster-' + sprache + '.jpg';
+    $('#dauer').textContent = (hoch() ? DAUER_HOCH : DAUER)[sprache];
+  }
+  function lageSetzen() {
+    document.documentElement.classList.toggle('hochkant', hoch());
+    $('#hochHinweis').hidden = !hoch();
+    if (hoch() && kurz) kurz.pause();
+    if (!video) { buehneStand(); return; }
+    if (document.fullscreenElement || document.webkitFullscreenElement) return;
+    const neu = new URL(quelle(), location.href).href;
+    if (video.src === neu) return;
+    const lief = !video.paused; video.src = neu;
+    if (lief) video.play().catch(() => {});
+  }
+
   function spiele(ab) {
     if (!video) {
       video = document.createElement('video');
       video.controls = true; video.playsInline = true; video.preload = 'auto';
-      video.src = VIDEO[sprache];
+      video.src = quelle();
       buehne.textContent = ''; buehne.append(video);
       video.addEventListener('timeupdate', () => {
         const t = video.currentTime; let akt = null;
@@ -339,13 +370,17 @@
     sprache = sp; merke('wfpdfpage_sprache', sp);
     document.querySelectorAll('[data-sprache]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.sprache === sp)));
     texte(); markenLaden(); kurzSprache();
-    if (video) { const lief = !video.paused; video.src = VIDEO[sp]; if (lief) video.play().catch(() => {}); }
-    else { $('#poster').src = 'assets/poster-' + sp + '.jpg'; $('#dauer').textContent = DAUER[sp]; }
+    if (video) { const lief = !video.paused; video.src = quelle(); if (lief) video.play().catch(() => {}); }
+    else buehneStand();
   }
 
   document.querySelectorAll('[data-sprache]').forEach(b => b.addEventListener('click', () => waehle(b.dataset.sprache)));
   $('#abspielen').addEventListener('click', () => spiele(null));
   $('#kurzBild').addEventListener('click', kurzSpielen);
+  LAGE.addEventListener('change', lageSetzen);
+  document.addEventListener('fullscreenchange', lageSetzen);
+  document.addEventListener('webkitfullscreenchange', lageSetzen);
+  lageSetzen();
   const vorher = lies('wfpdfpage_sprache') ||
     (/^ru\b/i.test(navigator.language || '') ? 'ru' : /^de\b/i.test(navigator.language || '') ? 'de' : (navigator.language ? 'en' : 'de'));
   if (vorher !== 'de' && VIDEO[vorher]) waehle(vorher); else markenLaden();

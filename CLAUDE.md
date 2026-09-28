@@ -26,6 +26,11 @@ Ablauf, Bauweise, benannte Grenzen.
   `tempo(f)`-Marken, die `schnitt.mjs` umrechnet. Wer das Drehbuch verlängert,
   prüft die Länge wieder gegen 30 s. `tests/seite.mjs` misst, dass Gerät und Band
   hochkant ganz im Bild liegen.
+- **Die große Bühne wechselt von selbst nach der Lage** (Klaus 2026-09-28):
+  hochkant (`matchMedia('(orientation: portrait)')`) zeigt sie die Kurzfassung
+  samt Hinweis, quer das ganze Video mit Kapiteln. Beim Drehen wird die Quelle
+  getauscht (nicht im Vollbild). `tests/seite.mjs` 5b misst beide Richtungen.
+  Hochkant-Poster sind 720 px breit, weil sie auch auf dem Tablet stehen.
 - **Die App verlinkt direkt auf die Videos** (Workflow PDF, Hilfe → 🎬 Erklärvideo, seit 2026-09-28):
   `assets/workfloh-pdf-quer{,-en,-ru}.mp4` und `assets/poster-{de,en,ru}.jpg`. **Wer eine dieser Dateien
   umbenennt oder verschiebt, bricht den Knopf in der App** — dort `videoFuer()` in `assets/app.js` und
