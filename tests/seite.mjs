@@ -157,7 +157,7 @@ try {
       buehne: (r => ({ w: r.width, h: r.height }))(document.getElementById('buehne').getBoundingClientRect()) }; });
   let L = await lage();
   ok('Hochkant: die Seite erkennt es von selbst', L.hoch, JSON.stringify(L));
-  ok('Hochkant: Poster der Hochkant-Fassung, Länge wie das ganze Video', /poster-hochvoll-en\.jpg$/.test(L.poster) && L.dauer === '3:44', JSON.stringify(L));
+  ok('Hochkant: Poster der Hochkant-Fassung, Länge wie das ganze Video', /poster-hochvoll-en\.jpg$/.test(L.poster) && L.dauer === '3:39', JSON.stringify(L));
   ok('Hochkant: die Kapitel stehen auch hochkant da (gleiche Sekunden)', L.kapitel, JSON.stringify(L));
   ok('Hochkant: die Bühne steht hochkant und passt ins Fenster', L.buehne.h > L.buehne.w && L.buehne.h <= 740, JSON.stringify(L.buehne));
   ok('für jede Sprache liegt die ganze Hochkant-Fassung samt Poster da', ['', '-en', '-ru'].every(s => fs.existsSync(path.join(WURZEL, `assets/workfloh-pdf-hochvoll${s}.mp4`))) &&
