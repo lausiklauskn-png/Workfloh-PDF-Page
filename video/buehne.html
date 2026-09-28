@@ -183,6 +183,7 @@ html,body{margin:0;overflow:hidden;background:#101216;font-family:"DejaVu Sans",
     // Titelkarte mit wechselnden Übergängen hinein und hinaus
     async karte(html, rein, raus, halten, klasse) {
       const k = document.getElementById('karte');
+      k.getAnimations().forEach(a => a.cancel());   // Endzustand des letzten Übergangs (z. B. Unschärfe) nicht erben
       k.className = klasse || '';
       k.innerHTML = html; k.style.visibility = 'visible';
       await B.bewege(k, rein, true);

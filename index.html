@@ -1,0 +1,223 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Workfloh PDF — Formulare scannen, ausfüllen, übersetzen</title>
+<meta name="description" content="Workfloh PDF: Formulare scannen, Felder erkennen, ausfüllen, als PDF teilen und übersetzen — kostenlos, ohne Konto, die Daten bleiben auf dem Gerät. Erklärvideo auf Deutsch, Englisch und Russisch.">
+<meta name="theme-color" content="#E0231B">
+<link rel="canonical" href="https://lausiklauskn-png.github.io/Workfloh-PDF-Page/">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png?v=1">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png?v=1">
+<meta property="og:title" content="Workfloh PDF">
+<meta property="og:description" content="Formulare scannen, ausfüllen, übersetzen — kostenlos, ohne Konto.">
+<meta property="og:image" content="https://lausiklauskn-png.github.io/Workfloh-PDF-Page/assets/poster-de.jpg">
+<style>
+  :root{--rot:#E0231B;--rot-d:#b71a13;--tinte:#16181d;--grau:#5b6270;--grund:#f4f5f8;--karte:#fff}
+  *{box-sizing:border-box}
+  html{-webkit-text-size-adjust:100%}
+  body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;color:var(--tinte);background:var(--grund);line-height:1.5}
+  a{color:var(--rot-d)}
+  .wrap{max-width:1040px;margin:0 auto;padding:0 16px}
+  header{background:#fff;border-bottom:4px solid var(--rot)}
+  .kopf{display:flex;align-items:center;gap:12px;min-height:64px}
+  .kopf img{width:44px;height:44px}
+  .marke{font-weight:800;font-size:1.25rem;letter-spacing:-.01em}
+  .marke span{color:var(--rot)}
+  .sprachen{margin-left:auto;display:flex;gap:6px}
+  .sprachen button{font:inherit;font-weight:700;font-size:.9rem;min-width:44px;min-height:40px;border-radius:10px;border:2px solid #d6d9e0;background:#fff;color:var(--tinte);cursor:pointer}
+  .sprachen button[aria-pressed="true"]{background:var(--rot);border-color:var(--rot);color:#fff}
+  .held{padding:26px 0 8px}
+  h1{font-size:clamp(1.55rem,4.6vw,2.4rem);line-height:1.15;margin:0 0 8px}
+  .unter{color:var(--grau);font-size:1.05rem;margin:0 0 18px}
+  .buehne{position:relative;aspect-ratio:16/9;background:#1a1d24;border-radius:16px;overflow:hidden;box-shadow:0 6px 24px rgba(0,0,0,.18)}
+  .buehne img,.buehne video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block}
+  .buehne video{object-fit:contain;background:#000}
+  .abspielen{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;border:0;background:rgba(0,0,0,.08);cursor:pointer;padding:0}
+  .abspielen i{width:88px;height:88px;border-radius:50%;background:var(--rot);box-shadow:0 4px 18px rgba(0,0,0,.35);display:flex;align-items:center;justify-content:center}
+  .abspielen i::after{content:"";border-left:30px solid #fff;border-top:19px solid transparent;border-bottom:19px solid transparent;margin-left:8px}
+  .abspielen:hover i{transform:scale(1.06)}
+  .dauer{position:absolute;right:12px;bottom:10px;background:rgba(0,0,0,.66);color:#fff;font-size:.85rem;font-weight:600;padding:3px 9px;border-radius:8px}
+  .kapitel{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0 4px;padding:0;list-style:none}
+  .kapitel button{font:inherit;font-size:.92rem;min-height:40px;padding:6px 12px;border-radius:999px;border:1px solid #d6d9e0;background:#fff;color:var(--tinte);cursor:pointer}
+  .kapitel button b{color:var(--rot);margin-right:4px}
+  .kapitel button:hover,.kapitel button.jetzt{border-color:var(--rot);background:#fff4f3}
+  .los{display:flex;flex-wrap:wrap;gap:12px;align-items:center;margin:22px 0 6px}
+  .knopf{display:inline-flex;align-items:center;gap:8px;text-decoration:none;font-weight:700;font-size:1.05rem;min-height:48px;padding:10px 22px;border-radius:12px;background:var(--rot);color:#fff}
+  .knopf:hover{background:var(--rot-d)}
+  .fein{color:var(--grau);font-size:.92rem}
+  .gitter{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:14px;margin:26px 0}
+  .gitter section{background:var(--karte);border-radius:14px;padding:14px 16px;box-shadow:0 1px 6px rgba(0,0,0,.06);border-top:4px solid var(--rot)}
+  .gitter h2{font-size:1.05rem;margin:0 0 4px}
+  .gitter p{margin:0;color:#353a44}
+  .tipp{background:#fff;border-left:6px solid #1a73e8;border-radius:12px;padding:14px 16px;margin:8px 0 26px;box-shadow:0 1px 6px rgba(0,0,0,.06)}
+  .tipp h2{font-size:1.05rem;margin:0 0 4px}
+  .tipp p{margin:0}
+  footer{border-top:1px solid #dde0e6;padding:18px 0 34px;color:var(--grau);font-size:.9rem}
+  footer a{margin-right:14px}
+  @media (max-width:560px){.kopf img{width:36px;height:36px}.marke{font-size:1.05rem}.sprachen button{min-width:40px}.abspielen i{width:68px;height:68px}.abspielen i::after{border-left-width:24px;border-top-width:15px;border-bottom-width:15px}}
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap kopf">
+    <img src="icons/w-floh-160.png?v=1" alt="" width="44" height="44">
+    <div class="marke">Workfloh <span>PDF</span></div>
+    <div class="sprachen" role="group" aria-label="Sprache · Language · Язык">
+      <button type="button" data-sprache="de" aria-pressed="true" lang="de" title="Video auf Deutsch">DE</button>
+      <button type="button" data-sprache="en" aria-pressed="false" lang="en" title="Video in English">EN</button>
+      <button type="button" data-sprache="ru" aria-pressed="false" lang="ru" title="Видео на русском">RU</button>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+  <div class="held">
+    <h1 data-t="titel">Formulare scannen, ausfüllen und übersetzen — auf dem eigenen Gerät</h1>
+    <p class="unter" data-t="unter">Kostenlos, ohne Konto. Die Dokumente bleiben auf dem Gerät. Das Video zeigt in knapp vier Minuten, wie es geht.</p>
+  </div>
+
+  <div class="buehne" id="buehne">
+    <img id="poster" src="assets/poster-de.jpg" alt="" width="1280" height="720" fetchpriority="high">
+    <button type="button" class="abspielen" id="abspielen" aria-label="Video abspielen"><i></i></button>
+    <span class="dauer" id="dauer">3:44</span>
+  </div>
+  <ul class="kapitel" id="kapitel" aria-label="Kapitel"></ul>
+
+  <div class="los">
+    <a class="knopf" href="https://lausiklauskn-png.github.io/Workflow-PDF/" data-t="appOeffnen">Workfloh PDF öffnen →</a>
+    <span class="fein" data-t="appFein">Läuft im Browser und lässt sich wie eine App installieren.</span>
+  </div>
+
+  <div class="gitter">
+    <section><h2 data-t="k1">📷 Scannen</h2><p data-t="k1t">Foto machen, das Blatt wird gefunden und gerade gezogen.</p></section>
+    <section><h2 data-t="k2">🧩 Felder erkennen</h2><p data-t="k2t">Linien und Kästchen werden zu Feldern — ohne Internet.</p></section>
+    <section><h2 data-t="k3">✍️ Ausfüllen</h2><p data-t="k3t">Tippen, ankreuzen, unterschreiben — dann als PDF ausgeben oder teilen.</p></section>
+    <section><h2 data-t="k4">🌐 Übersetzen</h2><p data-t="k4t">Der Text kommt an dieselbe Stelle der Seite — Deutsch, Englisch, Russisch.</p></section>
+  </div>
+
+  <div class="tipp">
+    <h2 data-t="tippT">Tipp: Dokumente am besten im Chrome-Browser übersetzen</h2>
+    <p data-t="tippP">Chromes eingebauter Übersetzer hat bei Dokumenten gute Ergebnisse geliefert. Die App bietet dafür den Weg „Mit Chrome übersetzen" an.</p>
+  </div>
+</main>
+
+<footer>
+  <div class="wrap">
+    <a href="impressum.html" data-t="recht">Impressum &amp; Datenschutz</a>
+    <span data-t="musik">Musik im Video: „Friends" von paulyudin, über Pixabay (Pixabay-Lizenz).</span>
+  </div>
+</footer>
+
+<script>
+(() => {
+  const VIDEO = { de: 'assets/workfloh-pdf-quer.mp4', en: 'assets/workfloh-pdf-quer-en.mp4', ru: 'assets/workfloh-pdf-quer-ru.mp4' };
+  const MARKEN = { de: 'assets/kapitel-quer.json', en: 'assets/kapitel-quer-en.json', ru: 'assets/kapitel-quer-ru.json' };
+  const KAP = {
+    de: { scannen: 'Scannen', einlesen: 'Einlesen', ausfuellen: 'Ausfüllen', ausgeben: 'Ausgeben', uebersetzen: 'Übersetzen', suchen: 'Suchen', ordnen: 'Ordnen', diaschau: 'Und noch mehr' },
+    en: { scannen: 'Scan', einlesen: 'Import', ausfuellen: 'Fill in', ausgeben: 'Export', uebersetzen: 'Translate', suchen: 'Search', ordnen: 'Organise', diaschau: 'And more' },
+    ru: { scannen: 'Сканирование', einlesen: 'Загрузка', ausfuellen: 'Заполнение', ausgeben: 'Экспорт', uebersetzen: 'Перевод', suchen: 'Поиск', ordnen: 'Порядок', diaschau: 'И ещё' }
+  };
+  const TXT = {
+    en: {
+      titel: 'Scan, fill in and translate forms — on your own device',
+      unter: 'Free, no account. Your documents stay on your device. The video shows how it works in just under four minutes.',
+      appOeffnen: 'Open Workfloh PDF →', appFein: 'Runs in the browser and can be installed like an app.',
+      k1: '📷 Scan', k1t: 'Take a photo — the sheet is found and straightened.',
+      k2: '🧩 Detect fields', k2t: 'Lines and boxes become fields — without internet.',
+      k3: '✍️ Fill in', k3t: 'Type, tick, sign — then export or share as a PDF.',
+      k4: '🌐 Translate', k4t: 'The text lands in the same place on the page — German, English, Russian.',
+      tippT: 'Tip: translate documents in the Chrome browser',
+      tippP: 'Chrome’s built-in translator gave good results for documents. The app offers the “Translate with Chrome” route for this.',
+      recht: 'Legal notice & privacy', musik: 'Music in the video: “Friends” by paulyudin, via Pixabay (Pixabay licence).',
+      spielen: 'Play video', kapitel: 'Chapters'
+    },
+    ru: {
+      titel: 'Сканировать, заполнять и переводить формуляры — на своём устройстве',
+      unter: 'Бесплатно, без регистрации. Документы остаются на устройстве. Видео за неполные четыре минуты показывает, как это работает.',
+      appOeffnen: 'Открыть Workfloh PDF →', appFein: 'Работает в браузере, можно установить как приложение.',
+      k1: '📷 Сканирование', k1t: 'Сфотографируйте — лист найдётся и выровняется.',
+      k2: '🧩 Поиск полей', k2t: 'Линии и клетки становятся полями — без интернета.',
+      k3: '✍️ Заполнение', k3t: 'Печатать, отмечать, подписывать — затем сохранить или отправить PDF.',
+      k4: '🌐 Перевод', k4t: 'Текст встаёт на то же место страницы — немецкий, английский, русский.',
+      tippT: 'Совет: документы лучше переводить в браузере Chrome',
+      tippP: 'Встроенный переводчик Chrome хорошо справился с документами. В приложении для этого есть путь «Перевести с Chrome».',
+      recht: 'Выходные данные и защита данных (на немецком)', musik: 'Музыка в видео: «Friends», paulyudin, Pixabay (лицензия Pixabay).',
+      spielen: 'Смотреть видео', kapitel: 'Главы'
+    }
+  };
+  const DE = {};
+  document.querySelectorAll('[data-t]').forEach(el => { DE[el.dataset.t] = el.innerHTML; });
+  DE.spielen = 'Video abspielen'; DE.kapitel = 'Kapitel';
+
+  const $ = s => document.querySelector(s);
+  const buehne = $('#buehne');
+  let sprache = 'de', video = null, marken = [];
+  const lies = k => { try { return localStorage.getItem(k); } catch (e) { return null; } };
+  const merke = (k, v) => { try { localStorage.setItem(k, v); } catch (e) {} };
+  const zeit = s => Math.floor(s / 60) + ':' + String(Math.floor(s % 60)).padStart(2, '0');
+
+  function texte() {
+    const t = sprache === 'de' ? DE : TXT[sprache];
+    document.querySelectorAll('[data-t]').forEach(el => { if (t[el.dataset.t] != null) el.innerHTML = t[el.dataset.t]; });
+    document.documentElement.lang = sprache;
+    $('#abspielen').setAttribute('aria-label', t.spielen);
+    $('#kapitel').setAttribute('aria-label', t.kapitel);
+  }
+
+  function kapitelZeigen() {
+    const ul = $('#kapitel'); ul.textContent = '';
+    marken.filter(m => KAP[sprache][m.n]).forEach((m, i) => {
+      const li = document.createElement('li'), b = document.createElement('button');
+      b.type = 'button'; b.dataset.t0 = m.t;
+      const nr = document.createElement('b'); nr.textContent = zeit(m.t);
+      b.append(nr, KAP[sprache][m.n]);
+      b.addEventListener('click', () => spiele(m.t));
+      li.append(b); ul.append(li);
+    });
+  }
+
+  async function markenLaden() {
+    marken = [];
+    try { const r = await fetch(MARKEN[sprache]); if (r.ok) marken = await r.json(); } catch (e) {}
+    kapitelZeigen();
+  }
+
+  function spiele(ab) {
+    if (!video) {
+      video = document.createElement('video');
+      video.controls = true; video.playsInline = true; video.preload = 'auto';
+      video.src = VIDEO[sprache];
+      buehne.textContent = ''; buehne.append(video);
+      video.addEventListener('timeupdate', () => {
+        const t = video.currentTime; let akt = null;
+        document.querySelectorAll('#kapitel button').forEach(b => { if (+b.dataset.t0 <= t + .2) akt = b; });
+        document.querySelectorAll('#kapitel button').forEach(b => b.classList.toggle('jetzt', b === akt));
+      });
+    }
+    const los = () => { if (ab != null) video.currentTime = ab; video.play().catch(() => {}); };
+    if (video.readyState >= 1) los(); else video.addEventListener('loadedmetadata', los, { once: true });
+    buehne.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+
+  function waehle(sp) {
+    if (!VIDEO[sp]) return;
+    sprache = sp; merke('wfpdfpage_sprache', sp);
+    document.querySelectorAll('[data-sprache]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.sprache === sp)));
+    texte(); markenLaden();
+    if (video) { const lief = !video.paused; video.src = VIDEO[sp]; if (lief) video.play().catch(() => {}); }
+    else $('#poster').src = 'assets/poster-' + sp + '.jpg';
+  }
+
+  document.querySelectorAll('[data-sprache]').forEach(b => b.addEventListener('click', () => waehle(b.dataset.sprache)));
+  $('#abspielen').addEventListener('click', () => spiele(null));
+  const vorher = lies('wfpdfpage_sprache') ||
+    (/^ru\b/i.test(navigator.language || '') ? 'ru' : /^de\b/i.test(navigator.language || '') ? 'de' : (navigator.language ? 'en' : 'de'));
+  if (vorher !== 'de' && VIDEO[vorher]) waehle(vorher); else markenLaden();
+
+  if ('serviceWorker' in navigator) addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
+})();
+</script>
+</body>
+</html>

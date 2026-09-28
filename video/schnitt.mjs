@@ -62,4 +62,15 @@ fil += `;[0:v]fps=30,format=yuv420p[v]`;
 execFileSync(FF, ['-y', '-hide_banner', '-loglevel', 'error', ...eing, '-filter_complex', fil,
   '-map', '[v]', '-map', '[a]', '-c:v', 'libx264', '-preset', 'slow', '-crf', '21', '-tune', 'animation',
   '-c:a', 'aac', '-b:a', '160k', '-movflags', '+faststart', '-t', dauer.toFixed(3), aus], { stdio: 'inherit' });
+// 4 · Kapitel-Marken für die Seite (Sekunden im Video), nur wenn die Aufnahme sie trägt
+if (NAME !== 'probe' && Z.szenen && Z.szenen.length) {
+  const km = Z.szenen.map(s => ({ n: s.n, t: Math.max(0, +(s.t - t0).toFixed(1)) }));
+  fs.writeFileSync(path.join(HIER, '..', 'assets', `kapitel-${NAME}.json`), JSON.stringify(km));
+}
+// 5 · Poster für die Seite: ein Bild aus der Titelkarte (2,5 s), 1280 px breit
+if (/^quer(-\w+)?$/.test(NAME)) {
+  const sp = NAME === 'quer' ? 'de' : NAME.slice(5);
+  execFileSync(FF, ['-y', '-hide_banner', '-loglevel', 'error', '-ss', '2.5', '-i', aus, '-frames:v', '1', '-vf', 'scale=1280:-2', '-q:v', '4',
+    path.join(HIER, '..', 'assets', `poster-${sp}.jpg`)], { stdio: 'inherit' });
+}
 console.log(`${aus}: ${dauer.toFixed(1)} s, ${klicks.length} Klicks, ${(fs.statSync(aus).size / 1e6).toFixed(1)} MB`);

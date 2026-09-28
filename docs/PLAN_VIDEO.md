@@ -89,6 +89,27 @@ ist. Musik: ein 30-s-Ausschnitt mit Aus-Blende.
   Entscheidung 2026-09-28). Das Ergebnis sieht aus wie in der App; es ist nicht
   live übersetzt.
 
+## Stand nach dem Bau (2026-09-28)
+
+- **Länge:** das Video ist **3:44**, nicht 2:28. Die Musik läuft in einer
+  Schleife darunter, das Video wird dafür nicht gekürzt (Klaus: „nur die Musik
+  wiederholen, nicht das Video").
+- **Drei Sprachen:** `node video/aufnahme.mjs --sprache=de|en|ru`, dann
+  `node video/schnitt.mjs quer|quer-en|quer-ru`. Band, Kapitel und Folien
+  stehen in `video/texte.json` (deutscher Satz als Schlüssel), die
+  App-Oberfläche wechselt über ihre eigene Spracheinstellung. Das
+  RU-Video übersetzt das Formular nach Russisch, die anderen nach Englisch.
+- **Chrome-Tipp:** im Kapitel Übersetzen zeigt die Hand auf „Mit Chrome
+  übersetzen", das Band sagt: Dokumente am besten im Chrome-Browser übersetzen
+  (Klaus' Erfahrung). Ein Vergleich mit Edge steht **nicht** im Video — er ist
+  nicht gemessen.
+- **Seite:** `index.html` mit Knöpfen DE · EN · RU (wechseln Video und
+  Seitentext), Kapitel-Knöpfe aus `assets/kapitel-<name>.json` und Poster
+  `assets/poster-<sprache>.jpg` — beides schreibt `schnitt.mjs`. Die deutschen
+  Kapitelmarken sind einmalig aus den Szenendauern gerechnet (die Aufnahme
+  schrieb sie da noch nicht mit), Abweichung unter einer Sekunde.
+- **Offen:** das Hochkant-Video.
+
 ## Die Musik liegt NICHT im Repo
 
 Die Pixabay-Lizenz erlaubt die Musik im Video, aber **nicht**, die Datei für

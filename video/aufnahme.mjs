@@ -86,9 +86,14 @@ async function warteAuf(sel, ms = 30000) { await app.waitForSelector(sel, { stat
 async function insBild(sel) {
   const bewegt = await app.evaluate(s => {
     const el = document.querySelector(s); const r = el.getBoundingClientRect();
-    let p = el.parentElement, aussen = r.top < 0 || r.bottom > innerHeight;
-    while (p && !aussen) { const q = p.getBoundingClientRect(); if (p.scrollHeight > p.clientHeight + 2 && (r.top < q.top || r.bottom > q.bottom)) aussen = true; p = p.parentElement; }
-    if (aussen) el.scrollIntoView({ block: 'center', behavior: 'smooth' });
+    let p = el.parentElement, aussen = r.top < 0 || r.bottom > innerHeight || r.left < 0 || r.right > innerWidth;
+    while (p && !aussen) {
+      const q = p.getBoundingClientRect();
+      if (p.scrollHeight > p.clientHeight + 2 && (r.top < q.top || r.bottom > q.bottom)) aussen = true;
+      if (p.scrollWidth > p.clientWidth + 2 && (r.left < q.left || r.right > q.right)) aussen = true;   // waagrecht rollende Leisten (Ordner)
+      p = p.parentElement;
+    }
+    if (aussen) el.scrollIntoView({ block: 'center', inline: 'center', behavior: 'smooth' });
     return aussen;
   }, sel);
   if (bewegt) await warte(900);
@@ -117,6 +122,20 @@ async function ziehe(sel, ddx, ddy) {
     await page.mouse.move(nx, ny);
   }
   await warte(500); await page.mouse.up(); await warte(500);
+}
+// Ziehen von einem Element auf ein anderes (ohne Nachrollen dazwischen)
+async function zieheZu(von, nach) {
+  const r = await rect(von), z = await rect(nach);
+  const x = r.x + r.w / 2, y = r.y + r.h / 2, zx = z.x + z.w / 2, zy = z.y + z.h / 2;
+  await page.evaluate(([x, y]) => B.handZu(x, y), [x, y]); await warte(250);
+  await page.evaluate(() => B.druck()); await page.mouse.move(x, y); await page.mouse.down();
+  const n = 30;
+  for (let i = 1; i <= n; i++) {
+    const e = i / n, nx = x + (zx - x) * e, ny = y + (zy - y) * e;
+    await page.evaluate(([x, y]) => B.handZu(x, y, 30, true), [nx, ny]);
+    await page.mouse.move(nx, ny);
+  }
+  await warte(600); await page.mouse.up(); await warte(700);
 }
 const karte = (html, rein, raus, halten, klasse) => page.evaluate(a => B.karte(...a), [html, rein, raus, halten, klasse]);
 // Feld der App nach Bezeichnung (und optional Lage) finden → CSS-Selektor
@@ -294,6 +313,14 @@ async function szeneUebersetzen() {
   await app.selectOption('.dlg [data-nach]', ZIEL_UE);
   await warte(400);
   if (await app.isChecked('.dlg [data-rueck]')) await tippe('.dlg [data-rueck]', { nachher: 200 });
+  // Klaus 2026-09-28: das Video soll zeigen, dass die Übersetzung im Chrome-Browser die gute ist
+  await text('Tipp: Dokumente am besten im <b>Chrome-Browser</b> übersetzen');
+  if (await app.$('.dlg [data-weg="chrome"]')) {
+    await insBild('.dlg [data-weg="chrome"]');
+    const rc = await rect('.dlg [data-weg="chrome"]');
+    await page.evaluate(([x, y]) => B.handZu(x, y), [rc.x + rc.w * 0.3, rc.y + rc.h * 0.6]);
+  }
+  await warte(2600);
   await text('Deutsch · English · Русский — <b>auf dem Gerät</b>');
   await tippe('.dlg [data-weg="browser"]', { nachher: 300 });
   await page.evaluate(() => B.handWeg());
@@ -354,16 +381,18 @@ async function szeneOrdnen() {
   await warte(600);
   await tippe('.ordner-chip[data-neu]', { nachher: 500 });
   await warteAuf('.dlg [data-e]');
-  for (const z of 'Anträge') { await page.keyboard.type(z); await warte(45); }
+  for (const z of L('Anträge')) { await page.keyboard.type(z); await warte(45); }
   await tippe('.dlg [data-j]', { nachher: 600 });
   await tippe('.ordner-chip[data-o="alle"]', { nachher: 600 });
   await text('Mehrere wählen — und <b>auf den Ordner ziehen</b>');
   const a = await dok(/^(?!Beispiel-Amtsformular)/), b = await dok(/^Beispiel-Amtsformular-Bewohnerparkausweis$/);
   await tippe(a + ' [data-haken]', { nachher: 300 });
   await tippe(b + ' [data-haken]', { nachher: 400 });
-  const ziel = await app.evaluate(() => window.__wfpdf.S.ordner.find(o => o.name === 'Anträge').id);
-  const rb = await rect(b + ' .dok-bild'), rz = await rect(`.ordner-chip[data-o="${ziel}"]`);
-  await ziehe(b + ' .dok-bild', rz.x + rz.w / 2 - (rb.x + rb.w / 2), rz.y + rz.h / 2 - (rb.y + rb.h / 2));
+  const ziel = await app.evaluate(n => window.__wfpdf.S.ordner.find(o => o.name === n).id, L('Anträge'));
+  // Karte und Ordner müssen zugleich zu sehen sein: erst ganz nach oben, Ziel erst DANACH messen
+  await app.evaluate(z => { window.scrollTo({ top: 0, behavior: 'smooth' }); document.querySelector(`.ordner-chip[data-o="${z}"]`).scrollIntoView({ inline: 'center', block: 'nearest', behavior: 'smooth' }); }, ziel);
+  await warte(900);
+  await zieheZu(b + ' .dok-bild', `.ordner-chip[data-o="${ziel}"]`);
   await page.evaluate(() => B.handWeg());
   await warte(700);
   await text('Sortieren — auch nach <b>Erstellungsdatum</b>');
@@ -404,17 +433,18 @@ async function szeneSchluss() {
 const klickBasis = await t0();
 await start();
 const beginn = Date.now();
+const szenen = [];   // Start je Szene (Sekunden seit 1970) → Kapitel-Knöpfe der Seite
 try {
   const NUR = (process.argv.find(a => a.startsWith('--nur=')) || '').slice(6).split(',').filter(Boolean);
   const SZENEN = { anfang: szeneAnfang, scannen: szeneScannen, einlesen: szeneEinlesen, ausfuellen: szeneAusfuellen,
     ausgeben: szeneAusgeben, uebersetzen: szeneUebersetzen, suchen: szeneSuchen, ordnen: szeneOrdnen,
     diaschau: szeneDiaschau, schluss: szeneSchluss };
   const folge = NUR.length ? NUR : probe ? ['anfang', 'scannen', 'schluss'] : Object.keys(SZENEN);
-  for (const n of folge) { const t = Date.now(); await SZENEN[n](); console.log(`  ${n}: ${((Date.now() - t) / 1000).toFixed(1)} s`); }
+  for (const n of folge) { const t = Date.now(); szenen.push({ n, t: t / 1000 }); await SZENEN[n](); console.log(`  ${n}: ${((Date.now() - t) / 1000).toFixed(1)} s`); }
 } catch (e) { console.error('Drehbuch abgebrochen:', e); }
 await warte(400);
 await stop();
 const klicks = await page.evaluate(() => (window.__klicks || []).map(k => performance.timeOrigin + k));
-fs.writeFileSync(path.join(ZIEL, 'zeiten.json'), JSON.stringify({ W, H, bilder, klicks: klicks.map(k => k / 1000), beginn: klickBasis / 1000 }, null, 1));
+fs.writeFileSync(path.join(ZIEL, 'zeiten.json'), JSON.stringify({ W, H, bilder, klicks: klicks.map(k => k / 1000), szenen, beginn: klickBasis / 1000 }, null, 1));
 console.log(`${NAME}: ${bilder.length} Bilder in ${((Date.now() - beginn) / 1000).toFixed(1)} s, ${klicks.length} Klicks → ${ZIEL}`);
 await browser.close(); srv.close();
