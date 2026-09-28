@@ -1,5 +1,5 @@
 // Setzt die Aufnahme zu einem MP4 zusammen: Einzelbilder mit ihren echten
-// Zeitstempeln → gleichmäßige 30 fps, darunter Musik (Ein- und Ausblende)
+// Zeitstempeln → gleichmäßige 30 fps, darunter Musik in Schleife (Ein- und Ausblende)
 // und an jedem Klick ein kurzes Klick-Geräusch.
 //
 //   MUSIK=/pfad/friends.mp3 node video/schnitt.mjs probe|quer|hoch [--ab SEK]
@@ -51,7 +51,7 @@ const aus = NAME === 'probe' ? path.join(ROH, 'probe.mp4') : path.join(HIER, '..
 fs.mkdirSync(path.dirname(aus), { recursive: true });
 
 // 3 · Ton: Musik (ab MUSIK_AB, 1 s Einblende, 2,5 s Ausblende) + Klicks
-const eing = ['-f', 'concat', '-safe', '0', '-i', path.join(ROH, 'liste.txt'), '-ss', String(MUSIK_AB), '-i', MUSIK];
+const eing = ['-f', 'concat', '-safe', '0', '-i', path.join(ROH, 'liste.txt'), '-stream_loop', '-1', '-ss', String(MUSIK_AB), '-i', MUSIK];   // Musik in Schleife (Klaus 2026-09-28): das Video wird nicht gekürzt
 klicks.forEach(() => eing.push('-i', KLICK));
 let fil = `[1:a]atrim=0:${dauer.toFixed(3)},asetpts=PTS-STARTPTS,volume=0.75,afade=t=in:d=1,afade=t=out:st=${Math.max(0, dauer - 2.5).toFixed(3)}:d=2.5[m]`;
 const mix = ['[m]'];

@@ -145,7 +145,7 @@ html,body{margin:0;overflow:hidden;background:#101216;font-family:"DejaVu Sans",
     async handZu(x, y, ms, haelt) {
       if (!haelt && hand.dataset.art !== 'zeigen') art('zeigen');   // unterwegs zeigt sie, dreht sich dabei zurück
       const x0 = hx, y0 = hy, dist = Math.hypot(x - x0, y - y0);
-      ms = ms || Math.min(1300, Math.max(520, dist * 0.9));
+      ms = ms || Math.min(1050, Math.max(450, dist * 0.75));
       const cx = (x0 + x) / 2 + (y - y0) * 0.18, cy = (y0 + y) / 2 - Math.abs(x - x0) * 0.12 - 40;
       const t0 = performance.now();
       await new Promise(res => {

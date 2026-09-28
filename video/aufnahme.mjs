@@ -16,17 +16,44 @@ import { starteServer } from './server.mjs';
 
 const HIER = path.dirname(fileURLToPath(import.meta.url));
 const APP = path.resolve(process.env.APP || path.join(HIER, '../../Workflow-PDF'));
-const probe = process.argv.includes('--probe'), hoch = process.argv.includes('--hoch');
-const NAME = probe ? 'probe' : hoch ? 'hoch' : 'quer';
+const probe = process.argv.includes('--probe') || process.argv.some(a => a.startsWith('--nur=')), hoch = process.argv.includes('--hoch');
+const SPRACHE = ((process.argv.find(a => a.startsWith('--sprache=')) || '').slice(10)) || 'de';
+if (!['de', 'en', 'ru'].includes(SPRACHE)) { console.error('--sprache=de|en|ru'); process.exit(2); }
+const NAME = (probe ? 'probe' : hoch ? 'hoch' : 'quer') + (SPRACHE === 'de' ? '' : '-' + SPRACHE);
 const W = hoch ? 1080 : 1920, H = hoch ? 1920 : 1080;
 const ZIEL = path.join(HIER, '_roh', NAME);
 fs.rmSync(ZIEL, { recursive: true, force: true }); fs.mkdirSync(path.join(ZIEL, 'bilder'), { recursive: true });
 const FOTO = path.join(HIER, '_roh/foto.jpg');
+const FORM = path.join(APP, 'beispiele/Beispiel-Amtsformular-Bewohnerparkausweis.pdf');
 if (!fs.existsSync(FOTO)) { console.error('Erst das Foto bauen: node video/foto-bauen.mjs'); process.exit(2); }
 
 const { srv, url } = await starteServer(HIER, APP);
 const browser = await chromium.launch({ args: ['--autoplay-policy=no-user-gesture-required'] });
 const ctx = await browser.newContext({ viewport: { width: W, height: H }, deviceScaleFactor: 1, locale: 'de-DE' });
+await ctx.addInitScript(() => {
+  window.__geteilt = [];
+  Object.defineProperty(navigator, 'canShare', { configurable: true, get: () => d => !!(d && d.files) });
+  navigator.share = async d => { window.__geteilt.push({ title: d.title, files: d.files.map(f => f.name) }); };
+});
+// Band, Kapitel und Folien: deutscher Satz ist der Schlüssel (texte.json)
+const TEXTE = JSON.parse(fs.readFileSync(path.join(HIER, 'texte.json'), 'utf8'))[SPRACHE] || {};
+const L = t => (TEXTE[t] != null ? TEXTE[t] : (SPRACHE !== 'de' && t && console.log('  [ohne Übersetzung]', t), t));
+if (SPRACHE !== 'de') await ctx.addInitScript(l => { try { localStorage.setItem('wfpdf_sprache_v1', JSON.stringify({ lang: l, tipps: true })); } catch (_) {} }, SPRACHE);
+const UE = JSON.parse(fs.readFileSync(path.join(HIER, 'uebersetzung.json'), 'utf8'));
+await ctx.addInitScript(W => {
+  // Chromes Übersetzer gibt es headless nicht: die Übersetzungen sind von Hand geschrieben (Klaus 2026-09-28)
+  self.Translator = {
+    availability: async ({ sourceLanguage: a, targetLanguage: b }) => a === b ? 'unavailable' : 'available',
+    create: async ({ sourceLanguage: a, targetLanguage: b }) => ({
+      translate: async t => { await new Promise(r => setTimeout(r, 45)); const w = W[a + '>' + b] || {}; return w[t] != null ? w[t] : t; },
+      destroy() {} }) };
+  // Spracherkennung: das Drehbuch „spricht" über window.__sag
+  window.__rec = [];
+  class Erk { constructor() { window.__rec.push(this); } start() {} stop() { setTimeout(() => this.onend && this.onend(), 20); } abort() {} }
+  window.SpeechRecognition = Erk; window.webkitSpeechRecognition = Erk;
+  window.__sag = (t, fertig) => { const r = window.__rec[window.__rec.length - 1]; const a = [{ transcript: t }]; a.isFinal = !!fertig; r.onresult({ resultIndex: 0, results: [a] }); };
+  window.__ereignis = n => { const r = window.__rec[window.__rec.length - 1]; r['on' + n] && r['on' + n]({}); };
+}, UE);
 const page = await ctx.newPage();
 page.on('pageerror', e => console.log('  [Seitenfehler]', String(e).slice(0, 160)));
 await page.goto(`${url}/buehne.html?w=${W}&h=${H}`);
@@ -51,8 +78,8 @@ const t0 = () => page.evaluate(() => performance.timeOrigin + performance.now())
 
 // ── Werkzeuge fürs Drehbuch ──
 const warte = ms => page.waitForTimeout(ms);
-const text = html => page.evaluate(h => B.text(h), html);
-const kapitel = (n, t) => page.evaluate(([n, t]) => B.kapitel(n, t), [n, t]);
+const text = html => page.evaluate(h => B.text(h), L(html));
+const kapitel = (n, t) => page.evaluate(([n, t]) => B.kapitel(n, t), [n, L(t)]);
 const rect = sel => page.evaluate(s => B.rect(s), sel);
 async function warteAuf(sel, ms = 30000) { await app.waitForSelector(sel, { state: 'visible', timeout: ms }); }
 // Liegt das Ziel außerhalb seines Rollbereichs, rollt die App es erst sichtbar herein (weich)
@@ -79,6 +106,7 @@ async function tippe(sel, { vorher = 250, nachher = 700, dx = 0, dy = 0 } = {}) 
   await warte(nachher);
 }
 async function ziehe(sel, ddx, ddy) {
+  await warteAuf(sel); await insBild(sel);
   const r = await rect(sel); const x = r.x + r.w / 2, y = r.y + r.h / 2;
   await page.evaluate(([x, y]) => B.handZu(x, y), [x, y]); await warte(250);
   await page.evaluate(() => B.druck()); await page.mouse.move(x, y); await page.mouse.down();
@@ -90,12 +118,33 @@ async function ziehe(sel, ddx, ddy) {
   }
   await warte(500); await page.mouse.up(); await warte(500);
 }
-const karte = (html, rein, raus, halten) => page.evaluate(a => B.karte(...a), [html, rein, raus, halten]);
+const karte = (html, rein, raus, halten, klasse) => page.evaluate(a => B.karte(...a), [html, rein, raus, halten, klasse]);
+// Feld der App nach Bezeichnung (und optional Lage) finden → CSS-Selektor
+async function feld(re, { x } = {}) {
+  const id = await app.evaluate(([q, x]) => {
+    const r = new RegExp(q); const fs = window.__wfpdf.S.doc.fields.filter(f => r.test(f.label));
+    fs.sort((a, b) => x == null ? 0 : Math.abs(a.x - x) - Math.abs(b.x - x));
+    return fs[0] && fs[0].id;
+  }, [re.source, x]);
+  if (!id) throw new Error('Feld fehlt: ' + re + ' — da sind: ' + JSON.stringify(await app.evaluate(() => window.__wfpdf.S.doc.fields.map(f => f.label))));
+  return `.feld[data-id="${id}"]`;
+}
+async function dok(re) {
+  const id = await app.evaluate(q => { const r = new RegExp(q); const d = [...document.querySelectorAll('#dokGitter .dok')].find(k => r.test(k.querySelector('.dok-name').textContent)); return d && d.dataset.id; }, re.source);
+  if (!id) throw new Error('Karte fehlt: ' + re);
+  return `#dokGitter .dok[data-id="${id}"]`;
+}
+async function zurBibliothek() { if (await app.$('#sc-ed.on')) await tippe('#edZurueck', { nachher: 700 }); await app.waitForSelector('#sc-bib.on'); }
+async function tippeText(sel, wort) {
+  await tippe(sel, { nachher: 250 });
+  for (const z of wort) { await page.keyboard.type(z); await warte(40); }
+  await warte(450);
+}
 const kartenWeg = raus => page.evaluate(r => B.kartenWeg(r), raus);
 
 // ── Drehbuch ──
 const ANFANG = `<div class="floh hopst"></div><h1 class="auf">Workfloh <span>PDF</span></h1>
-  <p class="auf">Formulare einfach erledigen — fotografieren, ausfüllen, übersetzen</p>`;
+  <p class="auf">${L('Formulare einfach erledigen — fotografieren, ausfüllen, übersetzen')}</p>`;
 
 async function szeneAnfang() {
   await karte(ANFANG, 'blende', null, 2600);
@@ -136,11 +185,218 @@ async function szeneScannen() {
   await warte(2400);
 }
 
+
+async function szeneEinlesen() {
+  await kapitel('2', 'Einlesen');
+  await text('Ein Formular als PDF? <b>Einfach einlesen.</b>');
+  if (await app.$('#sc-ed.on')) await tippe('#edZurueck', { nachher: 900 });
+  await app.waitForSelector('#sc-bib.on');
+  await warte(700);
+  const [wahl] = await Promise.all([page.waitForEvent('filechooser'), tippe('.import-leiste label:has(#inDatei)', { nachher: 200 })]);
+  await wahl.setFiles(FORM);
+  await page.evaluate(() => B.handWeg());
+  await app.waitForSelector('#sc-ed.on .seite canvas', { timeout: 60000 });
+  await warte(1400);
+  await text('Die App <b>findet die Felder</b> — ohne Internet');
+  await tippe('#edErkennen', { nachher: 700 });
+  await tippe('.dlg [data-off]', { nachher: 300 });
+  await page.evaluate(() => B.handWeg());
+  await app.waitForFunction(() => window.__wfpdf.S.doc.fields.some(f => !f.geprueft), null, { timeout: 60000 });
+  await app.waitForFunction(() => !document.querySelector('.fortschritt'));
+  await warte(1800);
+  await text('Passt alles? <b>Ein Tipp</b> übernimmt die Vorschläge');
+  await tippe('#vorschlagBand [data-alle]', { nachher: 1200 });
+}
+
+async function szeneAusfuellen() {
+  await kapitel('3', 'Ausfüllen');
+  await text('Beschriftung falsch erkannt? <b>Feldart einfach umstellen</b>');
+  const us = await feld(/Ich versichere/, { x: 49 });
+  await tippe(us, { nachher: 700 });
+  await tippe('#eigTyp', { nachher: 300 });
+  await app.selectOption('#eigTyp', 'unterschrift');
+  await warte(500);
+  await tippe('#eigLabel', { nachher: 200 });
+  await page.keyboard.press('Control+A');
+  for (const z of 'Unterschrift') { await page.keyboard.type(z); await warte(55); }
+  await warte(900);
+  await text('Felder <b>verschieben</b> — mit dem Finger');
+  const fn = await feld(/^Familienname/);
+  await ziehe(fn, 0, -14);
+  await warte(500);
+  await text('Jetzt <b>ausfüllen</b>');
+  await tippe('#mAusfuellen', { nachher: 900 });
+  await tippeText((await feld(/^Familienname/)) + ' input', 'Musterfrau');
+  await tippeText((await feld(/^Vorname/)) + ' input', 'Erika');
+  await text('Datum mit <b>Kalender</b>');
+  const gd = (await feld(/^Geburtsdatum/)) + ' input';
+  await tippe(gd, { nachher: 300 });
+  await page.keyboard.type('24051970', { delay: 90 });
+  await warte(600);
+  await text('E-Mail wird zum <b>Link</b>');
+  await tippeText((await feld(/^E-Mail/)) + ' input', 'erika@beispiel.de');
+  await app.evaluate(() => document.activeElement && document.activeElement.blur());
+  await warte(700);
+  await text('Kästchen: <b>ein Tipp</b>');
+  await tippe(await feld(/^Hauptwohnsitz/), { nachher: 500 });
+  await tippe(await feld(/^auf mich zugelassen/), { nachher: 600 });
+  await text('Und <b>unterschreiben</b> — direkt auf dem Bildschirm');
+  await tippe(await feld(/^Unterschrift$/), { nachher: 700 });
+  await warteAuf('#usFlaeche');
+  const r = await rect('#usFlaeche');
+  const x0 = r.x + r.w * 0.15, y0 = r.y + r.h * 0.6;
+  await page.evaluate(([x, y]) => B.handZu(x, y), [x0, y0]); await warte(200);
+  await page.evaluate(() => B.art('tippen'));
+  await page.mouse.move(x0, y0); await page.mouse.down();
+  const n = 26;
+  for (let i = 1; i <= n; i++) {
+    const t = i / n, x = x0 + r.w * 0.7 * t, y = y0 - Math.sin(t * Math.PI * 5) * r.h * 0.22 - t * r.h * 0.1;
+    await page.evaluate(([x, y]) => B.handZu(x, y, 25, true), [x, y]); await page.mouse.move(x, y);
+  }
+  await page.mouse.up(); await warte(500);
+  await tippe('.dlg [data-ok]', { nachher: 600 });
+  await page.evaluate(() => B.handWeg());
+  await warte(700);
+}
+
+async function szeneAusgeben() {
+  await kapitel('4', 'Ausgeben');
+  await text('Fertig? <b>Als PDF ausgeben</b>');
+  await tippe('#edExport', { nachher: 900 });
+  await warteAuf('.dlg [data-m="fest"]');
+  await text('Fest, <b>ausfüllbar</b>, leere Vorlage oder als Webseite');
+  const opt = ['fest', 'ausfuellbar', 'vorlage', 'html'];
+  for (const m of opt) { const r = await rect(`.dlg [data-m="${m}"]`); await page.evaluate(([x, y]) => B.handZu(x, y, 450), [r.x + r.w * 0.2, r.y + r.h * 0.62]); await warte(500); }
+  await tippe('.dlg [data-m="fest"]', { nachher: 1200 });
+  for (let i = 0; i < 4 && await app.$('.dlg'); i++) { await page.keyboard.press('Escape'); await warte(250); }
+  await text('Oder direkt <b>teilen</b> — per Mail, Messenger, Cloud');
+  await tippe('#edTeilen', { nachher: 500 });
+  await app.waitForFunction(() => window.__geteilt && window.__geteilt.length > 0, null, { timeout: 20000 });
+  await page.evaluate(() => B.handWeg());
+  await warte(1500);
+}
+
+const ZIEL_UE = SPRACHE === 'ru' ? 'ru' : 'en';   // die russische Fassung übersetzt ins Russische
+async function szeneUebersetzen() {
+  await kapitel('5', 'Übersetzen');
+  await text('Formular in fremder Sprache? <b>Übersetzen — mit Aufbau</b>');
+  await zurBibliothek();
+  await app.evaluate(() => { window.__wfpdf.S.aktOrdner = 'alle'; window.__wfpdf.suche.zeichneBibliothek(); });
+  await warte(300);
+  await tippe('#ordnerAktionen [data-ueb]', { nachher: 700 });
+  await app.waitForSelector('.dlg [data-dok]', { timeout: 60000 });
+  // nur das eben ausgefüllte Formular übersetzen: anhaken bzw. die anderen abwählen
+  const umschalten = await app.evaluate(() => [...document.querySelectorAll('.dlg [data-dok]')]
+    .filter(c => c.checked !== /Amtsformular/.test(c.parentNode.textContent)).map(c => c.dataset.dok));
+  for (const id of umschalten) await tippe(`.dlg [data-dok="${id}"]`, { nachher: 250 });
+  await app.waitForSelector('.dlg [data-weg="browser"]:not([disabled])', { timeout: 60000 });
+  await tippe('.dlg [data-nach]', { nachher: 200 });
+  await app.selectOption('.dlg [data-nach]', ZIEL_UE);
+  await warte(400);
+  if (await app.isChecked('.dlg [data-rueck]')) await tippe('.dlg [data-rueck]', { nachher: 200 });
+  await text('Deutsch · English · Русский — <b>auf dem Gerät</b>');
+  await tippe('.dlg [data-weg="browser"]', { nachher: 300 });
+  await page.evaluate(() => B.handWeg());
+  await app.waitForSelector('.dlg [data-oeffne]', { timeout: 90000 });
+  await warte(700);
+  await tippe('.dlg [data-oeffne]', { nachher: 300 });
+  await app.waitForSelector('#sc-ed.on .seite canvas', { timeout: 60000 });
+  await page.evaluate(() => B.handWeg());
+  await warte(800);
+  const r = await rect('.seite[data-i="0"]');
+  await text('Gleiches Blatt, <b>neue Sprache</b> — die Felder kommen mit');
+  await page.evaluate(r => B.zoom({ x: r.x, y: r.y, w: r.w, h: r.h * 0.45 }, 1.5), r);
+  await warte(3000);
+  await page.evaluate(() => B.zoom(null));
+  await warte(900);
+  await text('Auf Englisch ausfüllen — <b>Einträge zurück ins deutsche Original</b>');
+  await tippe(await feld(/^(Main residence|Hauptwohnsitz|Основное место жительства)/), { nachher: 400 });
+  await tippe('#edExport', { nachher: 700 });
+  await tippe('.dlg [data-rueckweg]', { nachher: 300 });
+  await app.waitForSelector('.dlg [data-weg="browser"]:not([disabled])', { timeout: 30000 });
+  await tippe('.dlg [data-weg="browser"]', { nachher: 300 });
+  await page.evaluate(() => B.handWeg());
+  await app.waitForFunction(() => window.__wfpdfRueckweg, null, { timeout: 60000 });
+  await app.waitForSelector('#sc-ed.on .seite canvas', { timeout: 60000 });
+  await warte(2200);
+}
+
+async function szeneSuchen() {
+  await kapitel('6', 'Suchen');
+  await text('Wo war das nochmal? <b>Einfach fragen</b>');
+  await zurBibliothek();
+  await app.waitForFunction(() => window.__wfpdf.S.docs.every(d => window.__wfpdf.suche.TEXTE.has(d.id)), null, { timeout: 60000 }).catch(() => {});
+  await tippe('#bibMic', { nachher: 300 });
+  await page.evaluate(() => B.handWeg());
+  await app.evaluate(() => window.__ereignis('speechstart'));
+  for (const t of ['Park', 'Parkaus', 'Parkausweis', 'Parkausweis Gebühr']) { await app.evaluate(t => window.__sag(t, false), t); await warte(380); }
+  await app.evaluate(() => { window.__sag('Parkausweis Gebühr', true); window.__ereignis('speechend'); });
+  await text('Die App zeigt, <b>wo es steht</b>');
+  await app.waitForSelector('#dokGitter .dok [data-fundzeilen]', { timeout: 15000 });
+  await warte(1800);
+  await tippe('#dokGitter .dok [data-fundzeilen]', { nachher: 300 });
+  await app.waitForSelector('#sc-ed.on .seite .fund', { timeout: 30000 });
+  await page.evaluate(() => B.handWeg());
+  await warte(600);
+  await insBild('#sc-ed .seite .fund');
+  const f = await rect('#sc-ed .seite .fund');
+  await page.evaluate(f => B.zoom(f, 2.2), f);
+  await warte(2600);
+  await page.evaluate(() => B.zoom(null));
+  await warte(900);
+}
+
+async function szeneOrdnen() {
+  await kapitel('7', 'Ordnen');
+  await text('Ordnung mit <b>einem Handgriff</b>');
+  await zurBibliothek();
+  await app.evaluate(() => { const s = document.getElementById('bibSuche'); s.value = ''; s.dispatchEvent(new Event('input', { bubbles: true })); window.__wfpdf.S.aktOrdner = 'alle'; window.__wfpdf.suche.zeichneBibliothek(); });
+  await warte(600);
+  await tippe('.ordner-chip[data-neu]', { nachher: 500 });
+  await warteAuf('.dlg [data-e]');
+  for (const z of 'Anträge') { await page.keyboard.type(z); await warte(45); }
+  await tippe('.dlg [data-j]', { nachher: 600 });
+  await tippe('.ordner-chip[data-o="alle"]', { nachher: 600 });
+  await text('Mehrere wählen — und <b>auf den Ordner ziehen</b>');
+  const a = await dok(/^(?!Beispiel-Amtsformular)/), b = await dok(/^Beispiel-Amtsformular-Bewohnerparkausweis$/);
+  await tippe(a + ' [data-haken]', { nachher: 300 });
+  await tippe(b + ' [data-haken]', { nachher: 400 });
+  const ziel = await app.evaluate(() => window.__wfpdf.S.ordner.find(o => o.name === 'Anträge').id);
+  const rb = await rect(b + ' .dok-bild'), rz = await rect(`.ordner-chip[data-o="${ziel}"]`);
+  await ziehe(b + ' .dok-bild', rz.x + rz.w / 2 - (rb.x + rb.w / 2), rz.y + rz.h / 2 - (rb.y + rb.h / 2));
+  await page.evaluate(() => B.handWeg());
+  await warte(700);
+  await text('Sortieren — auch nach <b>Erstellungsdatum</b>');
+  await tippe('[data-sortbox] summary', { nachher: 400 });
+  await tippe('[data-sortbox] [data-sort]', { nachher: 200 });
+  await app.selectOption('[data-sortbox] [data-sort]', 'erstellt');
+  await page.keyboard.press('Escape');
+  await page.evaluate(() => B.handWeg());
+  await warte(2200);
+}
+
+const FOLIEN = [
+  ['🗣️', 'Vier Sprachen', 'Deutsch · English · Русский · العربية', 'wisch'],
+  ['🧠', 'Suche nach Bedeutung', 'findet auch, was ganz anders formuliert ist', 'schieben'],
+  ['📚', 'Dicke Handbücher', 'in Teile zerlegen und Stück für Stück übersetzen', 'blaettern'],
+  ['🎨', 'Mit ChatGPT übersetzen', 'Foto hin, fertiges Bild zurück — ein Tipp', 'wischHoch'],
+  ['💾', 'Arbeitsstand sichern', 'läuft offline · deine Daten bleiben auf dem Gerät', 'iris'],
+];
+async function szeneDiaschau() {
+  await text('');
+  await kapitel('8', 'Und noch mehr');
+  for (let i = 0; i < FOLIEN.length; i++) {
+    const [sym, t, u, art] = FOLIEN[i];
+    await karte(`<div class="sym auf">${sym}</div><h1 class="auf">${L(t)}</h1><p class="auf">${L(u)}</p><div class="zaehler">${i + 1} / ${FOLIEN.length}</div>`, art, null, 1900, 'folie');
+  }
+  await kartenWeg('blende');
+}
+
 async function szeneSchluss() {
   await text('');
   await kapitel('', '');
   await karte(`<div class="floh winkt"></div><h1 class="auf">Workfloh <span>PDF</span></h1>
-    <p class="auf">kostenlos · ohne Konto · deine Daten bleiben auf dem Gerät</p>
+    <p class="auf">${L('kostenlos · ohne Konto · deine Daten bleiben auf dem Gerät')}</p>
     <div class="adresse auf">lausiklauskn-png.github.io/Workflow-PDF</div>`, 'irisMitte', null, 3500);
 }
 
@@ -149,9 +405,12 @@ const klickBasis = await t0();
 await start();
 const beginn = Date.now();
 try {
-  await szeneAnfang();
-  await szeneScannen();
-  await szeneSchluss();
+  const NUR = (process.argv.find(a => a.startsWith('--nur=')) || '').slice(6).split(',').filter(Boolean);
+  const SZENEN = { anfang: szeneAnfang, scannen: szeneScannen, einlesen: szeneEinlesen, ausfuellen: szeneAusfuellen,
+    ausgeben: szeneAusgeben, uebersetzen: szeneUebersetzen, suchen: szeneSuchen, ordnen: szeneOrdnen,
+    diaschau: szeneDiaschau, schluss: szeneSchluss };
+  const folge = NUR.length ? NUR : probe ? ['anfang', 'scannen', 'schluss'] : Object.keys(SZENEN);
+  for (const n of folge) { const t = Date.now(); await SZENEN[n](); console.log(`  ${n}: ${((Date.now() - t) / 1000).toFixed(1)} s`); }
 } catch (e) { console.error('Drehbuch abgebrochen:', e); }
 await warte(400);
 await stop();
