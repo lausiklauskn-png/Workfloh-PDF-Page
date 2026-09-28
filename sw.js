@@ -3,7 +3,7 @@
 // Netz: der Browser holt sie in Stücken (Range-Anfragen), und drei Videos
 // vorab in den Vorrat zu legen hieße, 75 MB auf den ersten Besuch zu laden.
 // Wer eine Datei aus CORE ändert, erhöht CACHE_VERSION.
-const CACHE_VERSION = 'workfloh-pdf-page-v5';
+const CACHE_VERSION = 'workfloh-pdf-page-v7';
 const CORE = [
   './', 'index.html', 'impressum.html', 'manifest.webmanifest',
   'icons/favicon-32.png?v=1', 'icons/apple-touch-icon.png?v=1', 'icons/w-floh-160.png?v=1',

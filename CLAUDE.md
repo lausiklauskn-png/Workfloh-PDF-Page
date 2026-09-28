@@ -34,6 +34,11 @@ Ablauf, Bauweise, benannte Grenzen.
   verborgen und stumm mit, Drehen schaltet nur um. Wer das Querformat neu aufnimmt, schneidet `hochvoll`
   NEU, sonst stimmen die Sekunden nicht mehr. `tests/seite.mjs` 5b misst „an derselben Stelle".
   Innerhalb einer Szene ist der Ablauf hochkant etwas anders getaktet — gleich sind die Szenengrenzen.
+- **Das Test-Foto (`video/foto-tisch.html`) muss alle vier Blattecken im Bild haben** (Klaus 2026-09-28: das
+  Ergebnis stand schief). Vorher lag die linke untere Ecke außerhalb des Fotos (y 1245 bei 1200 px), die App
+  setzte sie an den Rand, und das Ergebnis kippte; der Stift lag auf dem Blatt und kam als schwarzer Strich mit.
+  Jetzt: Blatt 640 px, Stift links auf dem Tisch. Die Aufnahme druckt die erkannten Ecken
+  („Erkannte Ecken: …"); gemessen weichen sie höchstens ~8 px von den wahren ab.
 - **Die App verlinkt direkt auf die Videos** (Workflow PDF, Hilfe → 🎬 Erklärvideo, seit 2026-09-28):
   `assets/workfloh-pdf-quer{,-en,-ru}.mp4` und `assets/poster-{de,en,ru}.jpg`. **Wer eine dieser Dateien
   umbenennt oder verschiebt, bricht den Knopf in der App** (auch `workfloh-pdf-hochvoll*.mp4` und `poster-hochvoll-*.jpg`) — dort `videoFuer()` in `assets/app.js` und

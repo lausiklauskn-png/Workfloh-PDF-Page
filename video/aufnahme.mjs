@@ -195,6 +195,8 @@ async function szeneScannen() {
   await page.evaluate(() => B.handWeg());
   await text('Die App <b>findet das Blatt</b> auf dem Foto von selbst');
   await app.waitForFunction(() => window.__wfpdfScan && window.__wfpdfScan.seiten[0] && window.__wfpdfScan.seiten[0].erkennung, null, { timeout: 90000 });
+  // Kontrolle (Klaus 2026-09-28: das Ergebnis stand schief): welche Ecken hat die App gefunden?
+  console.log('  Erkannte Ecken:', JSON.stringify(await app.evaluate(() => { const e = window.__wfpdfScan.seiten[0].erkennung; const s = window.__wfpdfScan.seiten[0]; return { quelle: e.quelle, sicher: e.sicher, foto: s.foto, ecken: (s.ecken || []).map(p => p.map(Math.round)) }; })));
   await warte(1800);
   await text('Passt eine Ecke nicht, zieht man sie einfach nach — <b>mit Lupe</b>');
   await ziehe('.scan .scan-griff', -26, -18);

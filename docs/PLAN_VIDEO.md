@@ -91,7 +91,7 @@ ist. Musik: ein 30-s-Ausschnitt mit Aus-Blende.
 
 ## Stand nach dem Bau (2026-09-28)
 
-- **Länge:** das Video ist **3:44**, nicht 2:28. Die Musik läuft in einer
+- **Länge:** das Video ist **3:38–3:39** (seit 2026-09-28, vorher 3:44), nicht 2:28. Die Musik läuft in einer
   Schleife darunter, das Video wird dafür nicht gekürzt (Klaus: „nur die Musik
   wiederholen, nicht das Video").
 - **Drei Sprachen:** `node video/aufnahme.mjs --sprache=de|en|ru`, dann
