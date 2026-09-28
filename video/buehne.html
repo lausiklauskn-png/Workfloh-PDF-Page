@@ -191,15 +191,23 @@ html,body{margin:0;overflow:hidden;background:#101216;font-family:"DejaVu Sans",
         alt.style.zIndex = '79'; alt.style.visibility = 'visible'; alt.querySelectorAll('.auf').forEach(e => e.classList.remove('auf'));
         k.parentNode.insertBefore(alt, k);
       }
-      k.getAnimations().forEach(a => a.cancel());   // Endzustand des letzten Übergangs (z. B. Unschärfe) nicht erben
+      // Endzustand des letzten Übergangs nicht erben. cancel() allein reichte im langen
+      // Lauf nicht: die Unschärfe vom Anfang hing nach 200 s noch an der Karte
+      // (gemessen mit DIAG=1). Deshalb zusätzlich alles ausdrücklich zurücksetzen.
+      B.karteSauber(k);
       k.className = klasse || '';
       k.innerHTML = html; k.style.visibility = 'visible';
       await B.bewege(k, rein, true);
+      B.karteSauber(k);                                    // angekommen: keine Füllung stehen lassen
       if (alt) alt.remove();
       await warte(halten || 1500);
-      if (raus) { await B.bewege(k, raus, false); k.style.visibility = 'hidden'; }
+      if (raus) { await B.bewege(k, raus, false); k.style.visibility = 'hidden'; B.karteSauber(k); }
     },
-    async kartenWeg(raus) { const k = document.getElementById('karte'); await B.bewege(k, raus, false); k.style.visibility = 'hidden'; },
+    async kartenWeg(raus) { const k = document.getElementById('karte'); await B.bewege(k, raus, false); k.style.visibility = 'hidden'; B.karteSauber(k); },
+    karteSauber(k) {
+      k.getAnimations().forEach(a => a.cancel());
+      k.style.filter = 'none'; k.style.transform = 'none'; k.style.clipPath = 'none'; k.style.opacity = '1';
+    },
     bewege(el, art, hinein) {
       const X = hx, Y = hy;
       const arten = {
