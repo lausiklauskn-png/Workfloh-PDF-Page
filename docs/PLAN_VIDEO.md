@@ -116,7 +116,7 @@ ist. Musik: ein 30-s-Ausschnitt mit Aus-Blende.
   die Bildzeiten danach um (Klicks im Zeitraffer fallen weg, sie würden rattern).
   Das Gerät passt jetzt ganz ins Bild: der Zoom wird aus dem Platz zwischen
   Kapitelzeile und Band **gerechnet** (vorher fest 2,05 → Gerät endete bei 1957 px).
-  Auf der Seite als „Kurzfassung" mit Herunterladen je Sprache.
+  Seit 2026-09-28 nicht mehr auf der Seite (Klaus: „zu kurz"); dort steht das ganze Video hochkant (hochvoll).
 - **Kästchen im Video nach Lage getippt:** die Offline-Erkennung der App benennt
   ein Kästchen nach dem Text LINKS davon — „Hauptwohnsitz" hieß das Kästchen neben
   „Nebenwohnsitz". Ein App-Befund in Workflow-PDF, hier nicht behoben. Das

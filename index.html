@@ -57,15 +57,16 @@
   .ablauf li::before{content:counter(s);display:inline-grid;place-items:center;width:24px;height:24px;border-radius:50%;background:var(--rot);color:#fff;font-weight:700;font-size:.85rem;margin-right:8px}
   .ablauf-p{margin:6px 0 0;color:#353a44}
   .gitter p{margin:0;color:#353a44}
-  .kurz{display:flex;gap:18px;align-items:center;background:var(--karte);border-radius:14px;padding:14px 16px;margin:14px 0 26px;box-shadow:0 1px 6px rgba(0,0,0,.06)}
-  .kurz-bild{position:relative;flex:0 0 auto;width:132px;aspect-ratio:9/16;border-radius:12px;overflow:hidden;background:#b3140f;border:0;padding:0;cursor:pointer}
+  .kurz{max-width:380px;margin:18px auto 26px;text-align:center;background:var(--karte);border-radius:14px;padding:14px 16px;box-shadow:0 1px 6px rgba(0,0,0,.06)}
+  .kurz-bild{position:relative;display:block;width:100%;aspect-ratio:9/16;border-radius:12px;overflow:hidden;background:#b3140f;border:0;padding:0;margin:0 auto 12px;cursor:pointer}
   .kurz-bild img,.kurz-bild video{display:block;width:100%;height:100%;object-fit:cover}
-  .kurz-bild .play{position:absolute;left:0;right:0;bottom:14px;margin:auto;width:52px;height:52px;border-radius:50%;background:rgba(255,255,255,.92);display:grid;place-items:center;font-size:1.3rem;color:var(--rot)}
+  .kurz-bild .play{position:absolute;inset:0;margin:auto;width:64px;height:64px;border-radius:50%;background:rgba(255,255,255,.92);display:grid;place-items:center;font-size:1.5rem;color:var(--rot)}
+  .kurz-bild .dauer{right:10px;bottom:10px}
   .kurz h2{font-size:1.05rem;margin:0 0 4px}
   .kurz p{margin:0 0 10px}
   .kurz a{font-weight:600}
-  .kurz.offen .kurz-bild{width:min(100%,340px);cursor:default}
-  .kurz.offen{flex-direction:column;align-items:flex-start}
+  .kurz.offen .kurz-bild{cursor:default}
+  .gitter .bild{display:block;width:100%;max-width:260px;height:auto;margin:0 auto 12px;border-radius:10px;border:1px solid #e3e5ea;background:#f4f5f7}
   .tipp{background:#fff;border-left:6px solid #1a73e8;border-radius:12px;padding:14px 16px;margin:8px 0 26px;box-shadow:0 1px 6px rgba(0,0,0,.06)}
   .tipp h2{font-size:1.05rem;margin:0 0 4px}
   .tipp p{margin:0}
@@ -109,26 +110,24 @@
   </div>
 
   <div class="kurz" id="kurz">
-    <button type="button" class="kurz-bild" id="kurzBild" aria-label="Kurzfassung abspielen">
-      <img id="kurzPoster" src="assets/poster-hoch-de.jpg" alt="" width="720" height="1280" loading="lazy"><span class="play" aria-hidden="true">▶</span>
+    <button type="button" class="kurz-bild" id="kurzBild" aria-label="Hochformat-Video abspielen">
+      <img id="kurzPoster" src="assets/poster-hochvoll-de.jpg" alt="" width="720" height="1280" loading="lazy"><span class="play" aria-hidden="true">▶</span><span class="dauer" id="kurzDauer">3:38</span>
     </button>
-    <div>
-      <h2 data-t="kurzT">Kurzfassung: 30 Sekunden hochkant</h2>
-      <p data-t="kurzP">Scannen, ausfüllen, übersetzen — zum Weiterschicken per WhatsApp oder als Status.</p>
-      <a id="kurzLaden" href="assets/workfloh-pdf-hoch.mp4" download="workfloh-pdf-kurz.mp4" data-t="kurzLaden">⬇ Video herunterladen</a>
-    </div>
+    <h2 data-t="kurzT">Das ganze Video hochkant</h2>
+    <p data-t="kurzP">Dasselbe Video, aufgenommen im Handy-Hochformat — so, wie die App meist in der Hand benutzt wird.</p>
+    <a id="kurzLaden" href="assets/workfloh-pdf-hochvoll.mp4" download="workfloh-pdf-hochkant.mp4" data-t="kurzLaden">⬇ Video herunterladen</a>
   </div>
 
   <h2 class="abschnitt" id="kann" data-t="kannT">Was Workfloh PDF kann</h2>
   <div class="gitter">
-    <section><h3 data-t="k1">📷 Scannen</h3><p data-t="k1t">Foto machen — das Blatt wird gefunden, gerade gezogen und aufgehellt. Mehrere Seiten werden ein PDF, auf Wunsch durchsuchbar.</p></section>
-    <section><h3 data-t="k2">🧩 Felder erkennen</h3><p data-t="k2t">Linien, Kästchen und graue Flächen werden zu Feldern — ohne Internet. Fehlt eines, setzen Sie es selbst.</p></section>
-    <section><h3 data-t="k3">✍️ Ausfüllen</h3><p data-t="k3t">Tippen, ankreuzen, Datum aus dem Kalender, unterschreiben. E-Mail, Telefon und Internetadressen werden zu Links.</p></section>
-    <section><h3 data-t="k5">📤 Ausgeben &amp; Teilen</h3><p data-t="k5t">Als festes PDF, als ausfüllbares PDF, als leere Vorlage oder als Webseite — teilen, herunterladen oder drucken.</p></section>
-    <section><h3 data-t="k4">🌐 Übersetzen</h3><p data-t="k4t">Deutsch, Englisch, Russisch: der Text kommt an dieselbe Stelle der Seite, Bilder und Farben bleiben. Große Dokumente gehen in Teilen.</p></section>
-    <section><h3 data-t="k6">🔎 Suchen</h3><p data-t="k6t">Findet Wörter im Namen, in den Feldern und im Text der Seiten und zeigt die Fundstelle. Auf Wunsch auch nach Bedeutung und per Spracheingabe.</p></section>
-    <section><h3 data-t="k7">🗂️ Ordnen</h3><p data-t="k7t">Ordner, Sortieren nach Name, Datum, Größe oder Seitenzahl. Mehrere auswählen, auf einen Ordner ziehen, einen ganzen Ordner als ZIP oder als ein PDF ausgeben.</p></section>
-    <section><h3 data-t="k8">📘 Hilfe an Bord</h3><p data-t="k8t">Handbuch, Erklärvideo und ein erfundenes Beispiel-Formular zum Ausprobieren — ganz ohne eigene Daten.</p></section>
+    <section><img class="bild" data-bild="scannen" src="assets/bilder/de-scannen.jpg" alt="" width="540" height="760" loading="lazy"><h3 data-t="k1">📷 Scannen</h3><p data-t="k1t">Foto machen — das Blatt wird gefunden, gerade gezogen und aufgehellt. Mehrere Seiten werden ein PDF, auf Wunsch durchsuchbar.</p></section>
+    <section><img class="bild" data-bild="felder" src="assets/bilder/de-felder.jpg" alt="" width="540" height="760" loading="lazy"><h3 data-t="k2">🧩 Felder erkennen</h3><p data-t="k2t">Linien, Kästchen und graue Flächen werden zu Feldern — ohne Internet. Fehlt eines, setzen Sie es selbst.</p></section>
+    <section><img class="bild" data-bild="ausfuellen" src="assets/bilder/de-ausfuellen.jpg" alt="" width="540" height="760" loading="lazy"><h3 data-t="k3">✍️ Ausfüllen</h3><p data-t="k3t">Tippen, ankreuzen, Datum aus dem Kalender, unterschreiben. E-Mail, Telefon und Internetadressen werden zu Links.</p></section>
+    <section><img class="bild" data-bild="ausgeben" src="assets/bilder/de-ausgeben.jpg" alt="" width="540" height="760" loading="lazy"><h3 data-t="k5">📤 Ausgeben &amp; Teilen</h3><p data-t="k5t">Als festes PDF, als ausfüllbares PDF, als leere Vorlage oder als Webseite — teilen, herunterladen oder drucken.</p></section>
+    <section><img class="bild" data-bild="uebersetzen" src="assets/bilder/de-uebersetzen.jpg" alt="" width="540" height="760" loading="lazy"><h3 data-t="k4">🌐 Übersetzen</h3><p data-t="k4t">Deutsch, Englisch, Russisch: der Text kommt an dieselbe Stelle der Seite, Bilder und Farben bleiben. Große Dokumente gehen in Teilen.</p></section>
+    <section><img class="bild" data-bild="suchen" src="assets/bilder/de-suchen.jpg" alt="" width="540" height="760" loading="lazy"><h3 data-t="k6">🔎 Suchen</h3><p data-t="k6t">Findet Wörter im Namen, in den Feldern und im Text der Seiten und zeigt die Fundstelle. Auf Wunsch auch nach Bedeutung und per Spracheingabe.</p></section>
+    <section><img class="bild" data-bild="ordnen" src="assets/bilder/de-ordnen.jpg" alt="" width="540" height="760" loading="lazy"><h3 data-t="k7">🗂️ Ordnen</h3><p data-t="k7t">Ordner, Sortieren nach Name, Datum, Größe oder Seitenzahl. Mehrere auswählen, auf einen Ordner ziehen, einen ganzen Ordner als ZIP oder als ein PDF ausgeben.</p></section>
+    <section><img class="bild" data-bild="hilfe" src="assets/bilder/de-hilfe.jpg" alt="" width="540" height="760" loading="lazy"><h3 data-t="k8">📘 Hilfe an Bord</h3><p data-t="k8t">Handbuch, Erklärvideo und ein erfundenes Beispiel-Formular zum Ausprobieren — ganz ohne eigene Daten.</p></section>
   </div>
 
   <h2 class="abschnitt" id="ablauf" data-t="ablaufT">So greift alles ineinander</h2>
@@ -169,7 +168,7 @@
   // Hochkant-Fassung des GANZEN Videos: jede Szene auf die Länge des Querformats gebracht (video/schnitt.mjs) —
   // gleich lang, gleiche Kapitel-Sekunden. Beim Drehen geht es an derselben Stelle weiter.
   const VOLL = { de: 'assets/workfloh-pdf-hochvoll.mp4', en: 'assets/workfloh-pdf-hochvoll-en.mp4', ru: 'assets/workfloh-pdf-hochvoll-ru.mp4' };
-  const KURZ = { de: 'assets/workfloh-pdf-hoch.mp4', en: 'assets/workfloh-pdf-hoch-en.mp4', ru: 'assets/workfloh-pdf-hoch-ru.mp4' };
+  const KURZ = VOLL;   // der Abschnitt unter dem großen Video zeigt das GANZE Video hochkant (Klaus 2026-09-28: die 30-s-Fassung ist raus)
   const MARKEN = { de: 'assets/kapitel-quer.json', en: 'assets/kapitel-quer-en.json', ru: 'assets/kapitel-quer-ru.json' };
   const KAP = {
     de: { scannen: 'Scannen', einlesen: 'Einlesen', ausfuellen: 'Ausfüllen', ausgeben: 'Ausgeben', uebersetzen: 'Übersetzen', suchen: 'Suchen', ordnen: 'Ordnen', diaschau: 'Und noch mehr' },
@@ -218,8 +217,8 @@
       tippP: 'Chrome’s built-in translator gave good results for documents. The app offers the “Translate with Chrome” route for this.',
       recht: 'Legal notice & privacy', musik: 'Music in the video: “Friends” by paulyudin, via Pixabay (Pixabay licence).',
       spielen: 'Play video', kapitel: 'Chapters',
-      kurzT: 'Short version: 30 seconds, portrait', kurzP: 'Scan, fill in, translate — to send on via WhatsApp or as a status.',
-      kurzLaden: '⬇ Download video', kurzSpielen: 'Play short version'
+      kurzT: 'The whole video in portrait', kurzP: 'The same video, recorded in phone portrait format — the way the app is mostly used in the hand.',
+      kurzLaden: '⬇ Download video', kurzSpielen: 'Play portrait video'
     },
     ru: {
       titel: 'Сканировать, заполнять и переводить формуляры — на своём устройстве',
@@ -262,13 +261,13 @@
       tippP: 'Встроенный переводчик Chrome хорошо справился с документами. В приложении для этого есть путь «Перевести с Chrome».',
       recht: 'Выходные данные и защита данных (на немецком)', musik: 'Музыка в видео: «Friends», paulyudin, Pixabay (лицензия Pixabay).',
       spielen: 'Смотреть видео', kapitel: 'Главы',
-      kurzT: 'Коротко: 30 секунд, вертикально', kurzP: 'Сканировать, заполнить, перевести — чтобы переслать в WhatsApp или поставить в статус.',
-      kurzLaden: '⬇ Скачать видео', kurzSpielen: 'Смотреть короткое видео'
+      kurzT: 'Всё видео вертикально', kurzP: 'То же видео, снятое в вертикальном формате телефона — так приложением чаще всего пользуются в руке.',
+      kurzLaden: '⬇ Скачать видео', kurzSpielen: 'Смотреть вертикальное видео'
     }
   };
   const DE = {};
   document.querySelectorAll('[data-t]').forEach(el => { DE[el.dataset.t] = el.innerHTML; });
-  DE.spielen = 'Video abspielen'; DE.kapitel = 'Kapitel'; DE.kurzSpielen = 'Kurzfassung abspielen';
+  DE.spielen = 'Video abspielen'; DE.kapitel = 'Kapitel'; DE.kurzSpielen = 'Hochformat-Video abspielen';
 
   const $ = s => document.querySelector(s);
   const buehne = $('#buehne');
@@ -368,7 +367,7 @@
     buehne.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   }
 
-  // Kurzfassung: lädt erst beim Antippen, wie das große Video
+  // Hochformat-Video unter dem großen Video: lädt erst beim Antippen
   let kurz = null;
   function kurzSpielen() {
     if (!kurz) {
@@ -382,9 +381,11 @@
   }
   function kurzSprache() {
     $('#kurzLaden').href = KURZ[sprache];
-    $('#kurzLaden').download = 'workfloh-pdf-kurz' + (sprache === 'de' ? '' : '-' + sprache) + '.mp4';
+    $('#kurzLaden').download = 'workfloh-pdf-hochkant' + (sprache === 'de' ? '' : '-' + sprache) + '.mp4';
     if (kurz) { const lief = !kurz.paused; kurz.src = KURZ[sprache]; if (lief) kurz.play().catch(() => {}); }
-    else $('#kurzPoster').src = 'assets/poster-hoch-' + sprache + '.jpg';
+    else $('#kurzPoster').src = 'assets/poster-hochvoll-' + sprache + '.jpg';
+    if ($('#kurzDauer')) $('#kurzDauer').textContent = DAUER[sprache];
+    document.querySelectorAll('img[data-bild]').forEach(b => { b.src = 'assets/bilder/' + sprache + '-' + b.dataset.bild + '.jpg'; });
   }
 
   function waehle(sp) {
