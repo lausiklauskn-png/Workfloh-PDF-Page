@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 150" width="120" height="150">
+  <!-- Comic-Handschuh, Zeigefinger zeigt nach oben links. Fingerspitze bei (22,6). -->
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ffffff"/><stop offset="1" stop-color="#e9ecf2"/>
+    </linearGradient>
+  </defs>
+  <g stroke="#1b1d24" stroke-width="5" stroke-linejoin="round" stroke-linecap="round" fill="url(#g)">
+    <!-- Manschette -->
+    <path d="M50 118 L96 104 L108 136 L62 150 Z" fill="#E0231B"/>
+    <path d="M58 124 L100 112" fill="none" stroke-width="3" opacity=".55"/>
+    <!-- Handfläche und eingeklappte Finger -->
+    <path d="M40 70 C30 84 34 108 52 120 L98 106 C112 96 112 76 104 64 C98 56 88 56 84 62
+             C82 52 70 50 66 58 C62 48 50 48 48 58 Z"/>
+    <!-- Zeigefinger -->
+    <path d="M40 72 L16 18 C12 8 24 0 32 8 L58 60 Z"/>
+    <!-- Daumen -->
+    <path d="M44 88 C30 84 20 90 22 98 C24 106 38 106 50 102 Z"/>
+    <!-- Falten -->
+    <path d="M66 58 L72 76 M84 62 L88 78" fill="none" stroke-width="3.5"/>
+  </g>
+  <path d="M22 16 C22 12 26 10 29 12" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" opacity=".9"/>
+</svg>

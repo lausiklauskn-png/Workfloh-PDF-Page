@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<title>Bühne — Workfloh PDF Erklärvideo</title>
+<style>
+/* Bühne für die Aufnahme. Größe kommt aus ?w=&h= (quer 1920×1080, hochkant 1080×1920).
+   Die App läuft im iframe #app; nichts auf der Bühne liegt ÜBER der App außer der
+   Hand und dem Klick-Ring (Klaus: „nichts abdecken"). Texte stehen im Band darunter. */
+:root{--rot:#E0231B;--rot-d:#9e1711;--ink:#16181d}
+html,body{margin:0;overflow:hidden;background:#101216;font-family:"DejaVu Sans",system-ui,sans-serif}
+#stage{position:relative;overflow:hidden;
+  background:radial-gradient(ellipse at 18% 12%,#5a1512 0,transparent 55%),
+             radial-gradient(ellipse at 85% 90%,#3a0d0b 0,transparent 50%),
+             linear-gradient(160deg,#1c1f26,#0e1014)}
+.blase{position:absolute;border-radius:50%;filter:blur(2px);opacity:.10;background:#fff;animation:schweben 18s ease-in-out infinite}
+@keyframes schweben{0%,100%{transform:translate(0,0)}50%{transform:translate(40px,-60px)}}
+
+#kamera{position:absolute;left:0;top:0;transform-origin:0 0;transition:transform 1.1s cubic-bezier(.45,.05,.2,1)}
+#geraet{position:absolute;background:#0b0c0f;border-radius:38px;padding:22px;
+  box-shadow:0 30px 80px rgba(0,0,0,.6),inset 0 0 0 2px #2c2f37,0 0 0 1px #000}
+#geraet::before{content:"";position:absolute;left:50%;top:9px;width:8px;height:8px;margin-left:-4px;border-radius:50%;background:#23262e}
+#schirm{position:relative;overflow:hidden;border-radius:18px;background:#fff}
+#app{display:block;border:0;background:#fff;transform-origin:0 0}
+
+/* Erklärband unter dem Gerät */
+#band{position:absolute;left:0;right:0;display:flex;justify-content:center;pointer-events:none}
+#bandText{max-width:88%;background:#fff;color:var(--ink);border-radius:999px;padding:14px 34px;
+  font-size:30px;font-weight:700;line-height:1.25;text-align:center;box-shadow:0 10px 30px rgba(0,0,0,.35);
+  border:4px solid var(--rot);opacity:0;transform:translateY(24px) scale(.96);
+  transition:opacity .45s ease,transform .5s cubic-bezier(.2,1.4,.4,1)}
+#bandText.an{opacity:1;transform:none}
+#bandText b{color:var(--rot)}
+#kapitel{position:absolute;color:#fff;font-weight:800;letter-spacing:.02em;opacity:0;transition:opacity .5s}
+#kapitel.an{opacity:.92}
+#kapitel .nr{display:inline-block;background:var(--rot);border-radius:12px;padding:10px 4px;margin-inline-end:14px}
+
+/* Hand und Klick-Ring */
+#hand{position:absolute;left:0;top:0;width:88px;height:110px;pointer-events:none;z-index:50;
+  transform-origin:16px 4px;filter:drop-shadow(6px 10px 8px rgba(0,0,0,.35));will-change:transform}
+#hand img{width:100%;height:100%;display:block;transition:transform .12s ease}
+#hand.drueckt img{transform:scale(.86) translate(-4px,-4px)}
+.ring{position:absolute;width:20px;height:20px;margin:-10px 0 0 -10px;border-radius:50%;border:5px solid var(--rot);
+  pointer-events:none;z-index:49;animation:ring .6s ease-out forwards}
+@keyframes ring{from{transform:scale(.3);opacity:1}to{transform:scale(3.4);opacity:0}}
+
+/* Titelkarten und Übergänge: eine Ebene über allem */
+#karte{position:absolute;inset:0;z-index:80;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  background:linear-gradient(150deg,var(--rot),var(--rot-d));color:#fff;text-align:center;visibility:hidden}
+#karte .floh{width:260px;height:260px;background:url(/app/icons/w-floh-320.png) center/contain no-repeat}
+#karte h1{font-size:92px;margin:8px 0 0;letter-spacing:-.02em}
+#karte h1 span{font-weight:400}
+#karte p{font-size:38px;margin:10px 0 0;opacity:.95}
+#karte .knr{font-size:40px;font-weight:700;opacity:.85;margin:0}
+#karte .adresse{font-size:30px;margin-top:26px;background:#fff;color:var(--rot);border-radius:999px;padding:10px 30px;font-weight:700}
+.hopst{animation:hopsen 1.1s cubic-bezier(.3,1.6,.5,1) both}
+@keyframes hopsen{0%{transform:translateY(-500px) rotate(-20deg)}60%{transform:translateY(0) rotate(6deg)}80%{transform:translateY(-30px)}100%{transform:none}}
+.winkt{animation:winken 1.2s ease-in-out infinite}
+@keyframes winken{0%,100%{transform:rotate(-6deg)}50%{transform:rotate(8deg)}}
+.auf{animation:auf .7s .25s cubic-bezier(.2,1,.3,1) both}
+@keyframes auf{from{opacity:0;transform:translateY(40px)}to{opacity:1;transform:none}}
+</style>
+</head>
+<body>
+<div id="stage">
+  <div class="blase" style="left:6%;top:70%;width:220px;height:220px"></div>
+  <div class="blase" style="left:82%;top:8%;width:300px;height:300px;animation-delay:-6s"></div>
+  <div class="blase" style="left:90%;top:62%;width:120px;height:120px;animation-delay:-11s"></div>
+  <div id="kamera">
+    <div id="geraet"><div id="schirm"><iframe id="app" title="Workfloh PDF"></iframe></div></div>
+  </div>
+  <div id="kapitel"></div>
+  <div id="band"><div id="bandText"></div></div>
+  <div id="hand"><img src="hand.svg" alt=""></div>
+  <div id="karte"></div>
+</div>
+<script>
+(() => {
+  const q = new URLSearchParams(location.search);
+  const W = +q.get('w') || 1920, H = +q.get('h') || 1080;
+  const hoch = H > W;
+  // App-Fenster: quer ein Tablet (1280×800), hochkant ein Handy (412×860) vergrößert.
+  const appW = +q.get('aw') || (hoch ? 412 : 1280), appH = +q.get('ah') || (hoch ? 860 : 800);
+  const zoomApp = hoch ? 2.05 : 1;
+  const stage = document.getElementById('stage');
+  stage.style.width = W + 'px'; stage.style.height = H + 'px';
+  const app = document.getElementById('app'), schirm = document.getElementById('schirm');
+  const geraet = document.getElementById('geraet'), kamera = document.getElementById('kamera');
+  app.style.width = appW + 'px'; app.style.height = appH + 'px'; app.style.transform = `scale(${zoomApp})`;
+  schirm.style.width = appW * zoomApp + 'px'; schirm.style.height = appH * zoomApp + 'px';
+  const gW = appW * zoomApp + 44, gH = appH * zoomApp + 44;
+  const bandH = hoch ? 230 : 150;
+  const gx = (W - gW) / 2, gy = hoch ? 150 : Math.max(24, (H - bandH - gH) / 2);
+  geraet.style.left = gx + 'px'; geraet.style.top = gy + 'px';
+  const band = document.getElementById('band');
+  band.style.top = (gy + gH + (hoch ? 40 : 26)) + 'px';
+  const kap = document.getElementById('kapitel');
+  kap.style.fontSize = (hoch ? 44 : 30) + 'px';
+  if (hoch) { kap.style.left = '0'; kap.style.right = '0'; kap.style.textAlign = 'center'; kap.style.top = '52px'; }
+  else { kap.style.left = '40px'; kap.style.top = '40px'; kap.style.writingMode = 'vertical-rl'; kap.style.transform = 'rotate(180deg)'; kap.style.top = '60px'; }
+  if (hoch) document.getElementById('bandText').style.fontSize = '42px';
+
+  const warte = ms => new Promise(r => setTimeout(r, ms));
+  const hand = document.getElementById('hand');
+  let hx = W * 0.8, hy = H + 200;          // Hand wartet unten rechts außerhalb
+  const setzeHand = (x, y) => { hx = x; hy = y; hand.style.transform = `translate(${x - 16}px,${y - 4}px) rotate(${hoch ? -4 : -8}deg)`; };
+  setzeHand(hx, hy);
+
+  const B = window.B = {
+    W, H, hoch,
+    appFenster: () => app.contentWindow,
+    laden: url => new Promise(r => { app.onload = () => r(); app.src = url; }),
+    // Lage eines Elements der App in Bühnen-Koordinaten (Zoom und Verschiebung eingerechnet)
+    rect(sel) {
+      const d = app.contentDocument; const el = typeof sel === 'string' ? d.querySelector(sel) : sel;
+      if (!el) return null;
+      const r = el.getBoundingClientRect(), f = app.getBoundingClientRect();
+      const s = f.width / app.clientWidth;
+      return { x: f.left + r.left * s, y: f.top + r.top * s, w: r.width * s, h: r.height * s };
+    },
+    // Hand gleitet auf einer weichen Kurve zum Ziel
+    async handZu(x, y, ms) {
+      const x0 = hx, y0 = hy, dist = Math.hypot(x - x0, y - y0);
+      ms = ms || Math.min(1300, Math.max(520, dist * 0.9));
+      const cx = (x0 + x) / 2 + (y - y0) * 0.18, cy = (y0 + y) / 2 - Math.abs(x - x0) * 0.12 - 40;
+      const t0 = performance.now();
+      await new Promise(res => {
+        const schritt = t => {
+          let p = Math.min(1, (t - t0) / ms); const e = p < .5 ? 4 * p * p * p : 1 - Math.pow(-2 * p + 2, 3) / 2;
+          const u = 1 - e; setzeHand(u * u * x0 + 2 * u * e * cx + e * e * x, u * u * y0 + 2 * u * e * cy + e * e * y);
+          p < 1 ? requestAnimationFrame(schritt) : res();
+        };
+        requestAnimationFrame(schritt);
+      });
+    },
+    async druck() {
+      hand.classList.add('drueckt');
+      const r = document.createElement('div'); r.className = 'ring'; r.style.left = hx + 'px'; r.style.top = hy + 'px';
+      stage.appendChild(r); setTimeout(() => r.remove(), 700);
+      window.__klicks = (window.__klicks || []).concat(performance.now());
+      await warte(140); hand.classList.remove('drueckt');
+    },
+    handWeg: () => B.handZu(W * 0.86, H + 220, 900),
+    text(html) {
+      const t = document.getElementById('bandText');
+      if (!html) { t.classList.remove('an'); return; }
+      if (t.classList.contains('an')) { t.classList.remove('an'); setTimeout(() => { t.innerHTML = html; t.classList.add('an'); }, 280); }
+      else { t.innerHTML = html; t.classList.add('an'); }
+    },
+    kapitel(nr, titel) { kap.innerHTML = nr ? `<span class="nr">${nr}</span>${titel}` : ''; kap.classList.toggle('an', !!nr); },
+    // Zoom auf einen Ausschnitt (Bühnen-Koordinaten), null = zurück
+    zoom(r, faktor) {
+      if (!r) { kamera.style.transform = ''; return; }
+      const f = faktor || 1.8; const cx = r.x + r.w / 2, cy = r.y + r.h / 2;
+      let tx = W / 2 - cx * f, ty = (H - bandH) / 2 - cy * f;
+      kamera.style.transform = `translate(${tx}px,${ty}px) scale(${f})`;
+    },
+    // Titelkarte mit wechselnden Übergängen hinein und hinaus
+    async karte(html, rein, raus, halten) {
+      const k = document.getElementById('karte');
+      k.innerHTML = html; k.style.visibility = 'visible';
+      await B.bewege(k, rein, true);
+      await warte(halten || 1500);
+      if (raus) { await B.bewege(k, raus, false); k.style.visibility = 'hidden'; }
+    },
+    async kartenWeg(raus) { const k = document.getElementById('karte'); await B.bewege(k, raus, false); k.style.visibility = 'hidden'; },
+    bewege(el, art, hinein) {
+      const X = hx, Y = hy;
+      const arten = {
+        blende: [{ opacity: 0 }, { opacity: 1 }],
+        wisch: [{ clipPath: 'inset(0 100% 0 0)' }, { clipPath: 'inset(0 0% 0 0)' }],
+        wischHoch: [{ clipPath: 'inset(100% 0 0 0)' }, { clipPath: 'inset(0% 0 0 0)' }],
+        schieben: [{ transform: 'translateX(100%)' }, { transform: 'translateX(0)' }],
+        fliessen: [{ transform: 'translateY(-100%) skewY(-6deg)', filter: 'blur(12px)' }, { transform: 'none', filter: 'blur(0)' }],
+        iris: [{ clipPath: `circle(0px at ${X}px ${Y}px)` }, { clipPath: `circle(${Math.hypot(W, H)}px at ${X}px ${Y}px)` }],
+        irisMitte: [{ clipPath: `circle(0px at 50% 50%)` }, { clipPath: `circle(${Math.hypot(W, H)}px at 50% 50%)` }],
+        blaettern: [{ transform: 'perspective(2400px) rotateY(-95deg)', transformOrigin: 'left center' }, { transform: 'perspective(2400px) rotateY(0deg)', transformOrigin: 'left center' }],
+      };
+      const k = arten[art] || arten.blende;
+      const a = el.animate(hinein ? k : [...k].reverse(), { duration: 800, easing: 'cubic-bezier(.65,0,.35,1)', fill: 'forwards' });
+      return a.finished;
+    },
+    warte,
+  };
+  window.__bereit = true;
+})();
+</script>
+</body>
+</html>
