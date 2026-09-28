@@ -106,6 +106,32 @@ try {
   ok('für jede Sprache liegen alle Bilder da', ['de', 'en', 'ru'].every(sp => BILDER.every(n => fs.existsSync(path.join(WURZEL, `assets/bilder/${sp}-${n}.jpg`)))));
   await p.$$eval('img.bild', l => l.forEach(i => { i.loading = 'eager'; }));
   ok('die Bilder laden wirklich', await p.waitForFunction(() => [...document.querySelectorAll('img.bild')].every(i => i.complete && i.naturalWidth > 0), null, { timeout: 8000 }).then(() => true, () => false));
+  // „Gut zu wissen" trägt ebenfalls Bilder (Klaus 2026-09-28)
+  const WISSEN = ['geraet', 'offline', 'ki', 'sprachen'];
+  const wk = await p.$$eval('#wissen + .gitter section', s => s.map(x => { const i = x.querySelector('img.bild'); return i && i.dataset.bild; }));
+  ok('jede Karte „Gut zu wissen" trägt ein Bild', wk.length === 4 && WISSEN.every((n, i) => wk[i] === n), JSON.stringify(wk));
+  ok('für jede Sprache liegen die Wissen-Bilder da', ['de', 'en', 'ru'].every(sp => WISSEN.every(n => fs.existsSync(path.join(WURZEL, `assets/bilder/${sp}-${n}.jpg`)))));
+  // Karten wachsen beim Zeigen mit der Maus (ab 600 px), über den Rand hinaus nie
+  const masz = (sel) => p.$eval(sel, e => { const r = e.getBoundingClientRect(); return { w: r.width, l: r.left, r: r.right, z: getComputedStyle(e).zIndex }; });
+  const erste = '#kann + .gitter section:nth-child(1)', zweite = '#kann + .gitter section:nth-child(2)';
+  await p.mouse.move(5, 5); await p.$eval(erste, e => e.scrollIntoView({ block: 'center' })); await p.waitForTimeout(300);
+  const vorher = await masz(erste), nachbarVorher = await masz(zweite);
+  await p.hover(erste); await p.waitForTimeout(400);
+  const nachher = await masz(erste), nachbarNachher = await masz(zweite);
+  ok('Maus: die Karte wird größer', nachher.w > vorher.w * 1.12, JSON.stringify({ vorher, nachher }));
+  ok('Maus: sie liegt über den Nachbarn', Number(nachher.z) > 0, JSON.stringify(nachher));
+  ok('Maus: die Nachbarkarte bleibt, wie sie ist', Math.abs(nachbarNachher.w - nachbarVorher.w) < 1, JSON.stringify({ nachbarVorher, nachbarNachher }));
+  ok('Maus: die Randkarte wächst nicht über den linken Rand', nachher.l >= 0, JSON.stringify(nachher));
+  const letzteImReihe = await p.$$eval('#kann + .gitter section', l => { const top = l[0].getBoundingClientRect().top; return l.filter(x => Math.abs(x.getBoundingClientRect().top - top) < 2).length; });
+  const rechts = `#kann + .gitter section:nth-child(${letzteImReihe})`;
+  await p.hover(rechts); await p.waitForTimeout(400);
+  const rr = await masz(rechts);
+  ok('Maus: die rechte Randkarte wächst nicht über den rechten Rand', rr.r <= 1280 && rr.w > vorher.w * 1.12, JSON.stringify(rr));
+  await p.mouse.move(5, 5); await p.waitForTimeout(400);
+  ok('Maus: weggezogen ist sie wieder normal', Math.abs((await masz(erste)).w - vorher.w) < 1);
+  await p.click(erste); await p.mouse.move(5, 5); await p.waitForTimeout(400);
+  ok('Maus: ein Klick hält sie nicht fest groß', Math.abs((await masz(erste)).w - vorher.w) < 1);
+  await p.$$eval('#kann + .gitter section', l => l.forEach(k => k.classList.remove('gross')));
 
   // 2 · Russisch
   await p.click('[data-sprache="ru"]');
@@ -158,6 +184,14 @@ try {
   ok('Handy: keine seitliche Überbreite', breite <= 360, `scrollWidth ${breite}`);
   const knopf = await q.$eval('.abspielen i', e => e.getBoundingClientRect().width);
   ok('Handy: Abspielknopf groß genug', knopf >= 44, `${knopf}`);
+  // Handy: die Karten stehen einzeln, das Bild füllt die Breite, Antippen vergrößert nichts
+  const hk = await q.$$eval('#kann + .gitter section', l => l.map(x => { const r = x.getBoundingClientRect(), i = x.querySelector('img.bild').getBoundingClientRect(); return { l: r.left, w: r.width, bild: i.width }; }));
+  ok('Handy: die Karten stehen einzeln untereinander', hk.every(k => Math.abs(k.l - hk[0].l) < 1) && new Set(hk.map(k => Math.round(k.l))).size === 1, JSON.stringify(hk.slice(0, 3)));
+  ok('Handy: das Bild ist größer als am Bildschirm (über 260 px)', hk.every(k => k.bild > 280), JSON.stringify(hk.map(k => k.bild)));
+  await q.$eval('#kann + .gitter section', e => e.scrollIntoView({ block: 'center' }));
+  await q.tap('#kann + .gitter section'); await q.waitForTimeout(400);
+  const hk1 = await q.$eval('#kann + .gitter section', e => e.getBoundingClientRect().width);
+  ok('Handy: Antippen vergrößert nicht über den Rand', Math.abs(hk1 - hk[0].w) < 1 && (await q.evaluate(() => document.documentElement.scrollWidth)) <= 360, `${hk1}`);
   // 5b · Lage des Geräts (Klaus 2026-09-28): hochkant dasselbe GANZE Video hochkant, quer im Querformat —
   // von selbst, beim Laden und beim Drehen, und an DERSELBEN Stelle weiter. Das Handy steht hochkant (360 × 740).
   const lage = () => q.evaluate(() => { const alle = [...document.querySelectorAll('#buehne video')], v = alle.find(x => !x.hidden);
@@ -206,6 +240,46 @@ try {
 
   // 6 · Bühne hochkant: das Gerät und das Band liegen ganz im Bild (1080×1920).
   // Bis 2026-09-28 stand der Zoom fest auf 2,05 — das Gerät endete bei 1957 px.
+  // 5b2 · Schmales Fenster 700 px mit Maus: dort stoßen die Karten an den Rand — sie wachsen zur Mitte hin
+  const sm = await browser.newContext({ viewport: { width: 700, height: 800 }, locale: 'de-DE' });
+  const s7 = await sm.newPage(); await s7.goto(URL0); await s7.waitForTimeout(300);
+  const rand = [];
+  for (const sel of ['#kann + .gitter section:nth-child(1)', '#kann + .gitter section:nth-child(2)']) {
+    await s7.$eval(sel, e => e.scrollIntoView({ block: 'center' })); await s7.hover(sel); await s7.waitForTimeout(400);
+    rand.push(await s7.$eval(sel, e => { const r = e.getBoundingClientRect(); return { l: r.left, r: r.right, w: r.width }; }));
+  }
+  ok('700 px: beide Randkarten wachsen und bleiben im Fenster', rand.every(r => r.l >= 0 && r.r <= 700 && r.w > 280), JSON.stringify(rand));
+  await sm.close();
+  // 5b3 · Großes Handy 560 px: auch dort einzeln untereinander, Bild groß
+  const gh = await browser.newContext({ viewport: { width: 560, height: 900 }, isMobile: true, hasTouch: true, locale: 'de-DE' });
+  const g5 = await gh.newPage(); await g5.goto(URL0); await g5.waitForTimeout(300);
+  const g5k = await g5.$$eval('#kann + .gitter section', l => l.map(x => ({ l: Math.round(x.getBoundingClientRect().left), b: x.querySelector('img.bild').getBoundingClientRect().width })));
+  ok('560 px: die Karten stehen einzeln, das Bild ist groß', new Set(g5k.map(k => k.l)).size === 1 && g5k.every(k => k.b > 300), JSON.stringify(g5k.slice(0, 3)));
+  await g5.$eval('#kann + .gitter section', e => e.scrollIntoView({ block: 'center' }));
+  const g5w = await g5.$eval('#kann + .gitter section', e => e.getBoundingClientRect().width);
+  await g5.tap('#kann + .gitter section'); await g5.waitForTimeout(400);
+  ok('560 px: Antippen vergrößert nicht', Math.abs((await g5.$eval('#kann + .gitter section', e => e.getBoundingClientRect().width)) - g5w) < 1);
+  await gh.close();
+
+  // 5c · Tablet quer mit dem Finger (Klaus 2026-09-28): Antippen vergrößert, noch einmal verkleinert, eine andere nimmt es mit
+  const tab = await browser.newContext({ viewport: { width: 1024, height: 700 }, hasTouch: true, isMobile: false, locale: 'de-DE' });
+  const t = await tab.newPage();
+  await t.goto(URL0); await t.waitForTimeout(400);
+  const tk = i => `#kann + .gitter section:nth-child(${i})`;
+  const tw = i => t.$eval(tk(i), e => e.getBoundingClientRect().width);
+  await t.$eval(tk(1), e => e.scrollIntoView({ block: 'center' })); await t.waitForTimeout(200);
+  const t0 = await tw(1);
+  await t.tap(tk(1)); await t.waitForTimeout(400);
+  ok('Tablet: Antippen vergrößert die Karte', (await tw(1)) > t0 * 1.12, `${t0} → ${await tw(1)}`);
+  await t.tap(tk(2)); await t.waitForTimeout(400);
+  ok('Tablet: eine andere antippen — nur sie ist groß', (await tw(2)) > t0 * 1.12 && Math.abs((await tw(1)) - t0) < 1);
+  await t.tap(tk(2)); await t.waitForTimeout(400);
+  ok('Tablet: noch einmal antippen macht sie wieder klein', Math.abs((await tw(2)) - t0) < 1);
+  await t.tap(tk(3)); await t.waitForTimeout(400);
+  await t.tap('h1'); await t.waitForTimeout(400);
+  ok('Tablet: Tipp daneben macht sie wieder klein', Math.abs((await tw(3)) - t0) < 1);
+  await tab.close();
+
   const b = await browser.newContext({ viewport: { width: 1080, height: 1920 } });
   const bp = await b.newPage();
   await bp.goto(URL0 + 'video/buehne.html?w=1080&h=1920');
