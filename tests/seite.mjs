@@ -1,5 +1,7 @@
 // Probe der Landingpage im echten Browser (Playwright, Chromium).
 //   node tests/seite.mjs
+// Dazu: Kurzfassung hochkant (Poster, Antippen, Herunterladen je Sprache) und die Bühne
+// hochkant (Gerät und Band ganz im Bild).
 // Misst: Deutsch als Vorgabe · Kapitel-Knöpfe aus den Marken · Wechsel DE/EN/RU
 // (Text, Poster, Video, Kapitelnamen) · Kapitel springt an die Stelle · Video lädt
 // erst beim Antippen · keine seitliche Überbreite am Handy · Rechtliches verlinkt.
@@ -70,6 +72,13 @@ try {
     fs.existsSync(path.join(WURZEL, `assets/workfloh-pdf-quer${s}.mp4`)) && fs.existsSync(path.join(WURZEL, `assets/kapitel-quer${s}.json`))) &&
     ['de', 'en', 'ru'].every(s => fs.existsSync(path.join(WURZEL, `assets/poster-${s}.jpg`))));
 
+  // 1b · Kurzfassung (hochkant): Poster da, Video erst beim Antippen, Datei zum Weiterschicken
+  ok('Kurzfassung: Poster steht da', await p.$eval('#kurzPoster', i => { i.loading = 'eager'; return true; }) &&
+    await p.waitForFunction(() => { const i = document.getElementById('kurzPoster'); return i.complete && i.naturalWidth > 0; }, null, { timeout: 5000 }).then(() => true, () => false));
+  ok('Kurzfassung: Herunterladen zeigt aufs deutsche Video', /workfloh-pdf-hoch\.mp4$/.test(await p.getAttribute('#kurzLaden', 'href')));
+  ok('für jede Sprache liegt die Kurzfassung samt Poster da', ['', '-en', '-ru'].every(s => fs.existsSync(path.join(WURZEL, `assets/workfloh-pdf-hoch${s}.mp4`))) &&
+    ['de', 'en', 'ru'].every(s => fs.existsSync(path.join(WURZEL, `assets/poster-hoch-${s}.jpg`))));
+
   // 2 · Russisch
   await p.click('[data-sprache="ru"]');
   await p.waitForFunction(() => /Перевод/.test(document.getElementById('kapitel').textContent), null, { timeout: 5000 }).catch(() => {});
@@ -78,6 +87,10 @@ try {
   ok('RU: Kapitel russisch', /Перевод/.test(await p.textContent('#kapitel')));
   ok('RU: <html lang="ru">', await p.getAttribute('html', 'lang') === 'ru');
   ok('RU: Chrome-Tipp russisch', /Chrome/.test(await p.textContent('.tipp')) && /браузере/.test(await p.textContent('.tipp')));
+
+  ok('RU: Kurzfassung — Poster und Herunterladen russisch', /poster-hoch-ru\.jpg$/.test(await p.getAttribute('#kurzPoster', 'src')) &&
+    /workfloh-pdf-hoch-ru\.mp4$/.test(await p.getAttribute('#kurzLaden', 'href')));
+  ok('RU: Kurzfassung — Text russisch', /секунд/.test(await p.textContent('#kurz')));
 
   // 3 · Kapitel springt an die Stelle — im RU-Video
   const marken = JSON.parse(fs.readFileSync(path.join(WURZEL, 'assets/kapitel-quer-ru.json'), 'utf8'));
@@ -90,6 +103,13 @@ try {
   if (!STELLV) console.log('⊘ Sprung nicht messbar: kein ffmpeg für den Stellvertreter');
   // Die echte Länge steht in den Marken: Schluss beginnt nach über drei Minuten
   ok('… das Video trägt mehr als drei Minuten Kapitel', marken[marken.length - 1].t > 180);
+
+  // 3b · Kurzfassung antippen: eigenes Video, russisch, nicht in einem Knopf
+  await p.click('#kurzBild');
+  await p.waitForFunction(() => { const v = document.querySelector('#kurzVideo video'); return v && v.readyState >= 1; }, null, { timeout: 15000 }).catch(() => {});
+  const kv = await p.evaluate(() => { const v = document.querySelector('#kurzVideo video'); return v && { src: v.getAttribute('src'), imKnopf: !!v.closest('button'), controls: v.controls }; });
+  ok('Kurzfassung: Antippen legt das RU-Hochkant-Video an', kv && /hoch-ru\.mp4$/.test(kv.src), JSON.stringify(kv));
+  ok('Kurzfassung: Video steht NICHT in einem Knopf, Bedienelemente an', kv && !kv.imKnopf && kv.controls, JSON.stringify(kv));
 
   // 4 · Wahl bleibt beim Neuladen
   await p.reload();
@@ -110,6 +130,19 @@ try {
   ok('Impressum verlinkt', !!(await q.$('footer a[href="impressum.html"]')));
   const imp = await q.goto(URL0 + 'impressum.html');
   ok('Impressum antwortet und nennt die Musik', imp.ok() && /Pixabay/.test(await q.textContent('body')) && /§ 5 DDG/.test(await q.textContent('body')));
+
+  // 6 · Bühne hochkant: das Gerät und das Band liegen ganz im Bild (1080×1920).
+  // Bis 2026-09-28 stand der Zoom fest auf 2,05 — das Gerät endete bei 1957 px.
+  const b = await browser.newContext({ viewport: { width: 1080, height: 1920 } });
+  const bp = await b.newPage();
+  await bp.goto(URL0 + 'video/buehne.html?w=1080&h=1920');
+  await bp.waitForFunction(() => window.__bereit);
+  await bp.evaluate(() => B.text('Gleiches Blatt, <b>neue Sprache</b> — die Felder kommen mit, auch in zwei Zeilen'));
+  await bp.waitForTimeout(700);
+  const g = await bp.evaluate(() => { const r = document.getElementById('geraet').getBoundingClientRect(), t = document.getElementById('bandText').getBoundingClientRect();
+    return { links: r.left, rechts: r.right, unten: r.bottom, bandOben: t.top, bandUnten: t.bottom }; });
+  ok('Bühne hochkant: Gerät ganz im Bild', g.links >= 0 && g.rechts <= 1080 && g.unten <= 1920, JSON.stringify(g));
+  ok('Bühne hochkant: Band unter dem Gerät und im Bild', g.bandOben > g.unten && g.bandUnten <= 1900, JSON.stringify(g));
 } finally { await browser.close(); srv.close(); }
 console.log(`${gruen} grün · ${rot} ROT`);
 process.exit(rot ? 1 : 0);

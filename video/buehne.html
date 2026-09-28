@@ -91,9 +91,12 @@ html,body{margin:0;overflow:hidden;background:#101216;font-family:"DejaVu Sans",
   const q = new URLSearchParams(location.search);
   const W = +q.get('w') || 1920, H = +q.get('h') || 1080;
   const hoch = H > W;
-  // App-Fenster: quer ein Tablet (1280×800), hochkant ein Handy (412×860) vergrößert.
-  const appW = +q.get('aw') || (hoch ? 412 : 1280), appH = +q.get('ah') || (hoch ? 860 : 800);
-  const zoomApp = hoch ? 2.05 : 1;
+  // App-Fenster: quer ein Tablet (1280×800), hochkant ein Handy (412×732, 9:16) vergrößert.
+  // Hochkant wird der Zoom aus dem Platz GERECHNET: oben die Kapitelzeile, unten das Band.
+  // Vorher stand 2,05 fest bei 860 px Höhe — das Gerät endete bei 1957 px, unter dem Bildrand.
+  const appW = +q.get('aw') || (hoch ? 412 : 1280), appH = +q.get('ah') || (hoch ? 732 : 800);
+  const OBEN = 140, UNTEN = 300;                       // hochkant: Platz für Kapitel und Band
+  const zoomApp = hoch ? Math.min((H - OBEN - UNTEN - 44) / appH, (W * 0.86 - 44) / appW) : 1;
   const stage = document.getElementById('stage');
   stage.style.width = W + 'px'; stage.style.height = H + 'px'; if (hoch) stage.classList.add('hoch');
   const app = document.getElementById('app'), schirm = document.getElementById('schirm');
@@ -102,13 +105,17 @@ html,body{margin:0;overflow:hidden;background:#101216;font-family:"DejaVu Sans",
   schirm.style.width = appW * zoomApp + 'px'; schirm.style.height = appH * zoomApp + 'px';
   const gW = appW * zoomApp + 44, gH = appH * zoomApp + 44;
   const bandH = hoch ? 230 : 150;
-  const gx = (W - gW) / 2, gy = hoch ? 150 : Math.max(24, (H - bandH - gH) / 2);
+  const gx = (W - gW) / 2, gy = hoch ? OBEN : Math.max(24, (H - bandH - gH) / 2);
   geraet.style.left = gx + 'px'; geraet.style.top = gy + 'px';
   const band = document.getElementById('band');
-  band.style.top = (gy + gH + (hoch ? 40 : 26)) + 'px';
+  band.style.top = (gy + gH + (hoch ? 36 : 26)) + 'px';
+  window.__geraet = { gx, gy, gW, gH, zoomApp };      // für die Probe: das Gerät muss ganz im Bild liegen
   const kap = document.getElementById('kapitel');
   kap.style.fontSize = (hoch ? 44 : 30) + 'px';
-  if (hoch) { kap.style.left = '0'; kap.style.right = '0'; kap.style.textAlign = 'center'; kap.style.top = '52px'; }
+  if (hoch) {   // hochkant: eigene weiße Plakette über dem Zoom, sonst läuft die vergrößerte App durch die Schrift
+    kap.style.left = '50%'; kap.style.transform = 'translateX(-50%)'; kap.style.top = '34px'; kap.style.zIndex = '60';
+    kap.style.background = '#fff'; kap.style.borderRadius = '999px'; kap.style.padding = '8px 30px 8px 10px';
+    kap.style.whiteSpace = 'nowrap'; kap.style.boxShadow = '0 8px 24px rgba(30,40,70,.18)'; }
   else { kap.style.left = '40px'; kap.style.top = '40px'; kap.style.writingMode = 'vertical-rl'; kap.style.transform = 'rotate(180deg)'; kap.style.top = '60px'; }
   if (hoch) document.getElementById('bandText').style.fontSize = '42px';
 

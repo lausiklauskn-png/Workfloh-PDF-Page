@@ -148,6 +148,19 @@ async function feld(re, { x } = {}) {
   if (!id) throw new Error('Feld fehlt: ' + re + ' — da sind: ' + JSON.stringify(await app.evaluate(() => window.__wfpdf.S.doc.fields.map(f => f.label))));
   return `.feld[data-id="${id}"]`;
 }
+// Kästchen nach LAGE in seiner Zeile (n = 0 ist das erste von links). Die Offline-Erkennung
+// benennt ein Kästchen nach dem Text LINKS davon — beim Formular gehört die Beschriftung aber
+// rechts daneben. Nach Namen getippt, trifft der Haken das falsche Kästchen (gemessen 2026-09-28).
+async function kaestchen(re, n) {
+  const id = await app.evaluate(([q, n]) => {
+    const fs = window.__wfpdf.S.doc.fields; const a = fs.find(f => new RegExp(q).test(f.label));
+    if (!a) return null;
+    const zeile = fs.filter(f => f.type === 'check' && f.page === a.page && Math.abs(f.y - a.y) < 1.2).sort((x, y) => x.x - y.x);
+    return zeile[n] && zeile[n].id;
+  }, [re.source, n]);
+  if (!id) throw new Error('Kästchen fehlt: ' + re + ' #' + n);
+  return `.feld[data-id="${id}"]`;
+}
 async function dok(re) {
   const id = await app.evaluate(q => { const r = new RegExp(q); const d = [...document.querySelectorAll('#dokGitter .dok')].find(k => r.test(k.querySelector('.dok-name').textContent)); return d && d.dataset.id; }, re.source);
   if (!id) throw new Error('Karte fehlt: ' + re);
@@ -449,6 +462,101 @@ async function szeneSchluss() {
     <div class="adresse auf">lausiklauskn-png.github.io/Workflow-PDF</div>`, 'irisMitte', null, 3500);
 }
 
+// ── Hochkant (etwa 30 s): dieselben Handgriffe, gekürzt; Wartezeiten laufen im Zeitraffer ──
+// tempo(f): ab hier läuft das Video f-mal so schnell (schnitt.mjs rechnet die Zeiten um).
+const tempi = [];
+const tempo = f => { tempi.push({ t: Date.now() / 1000, f }); };
+async function hochAnfang() { tempo(1); await karte(ANFANG, 'blende', null, 800); await kartenWeg('fliessen'); }
+async function hochScannen() {
+  tempo(1);
+  await kapitel('1', 'Scannen');
+  await text('Ein Formular auf Papier? <b>Einfach fotografieren.</b>');
+  await tippe('#btnScan', { nachher: 500 });
+  tempo(4.5);
+  await warteAuf('.scan [data-kamera]');
+  const [wahl] = await Promise.all([page.waitForEvent('filechooser'), tippe('.scan [data-kamera]', { nachher: 200 })]);
+  await wahl.setFiles(FOTO);
+  await page.evaluate(() => B.handWeg());
+  await app.waitForFunction(() => window.__wfpdfScan && window.__wfpdfScan.seiten[0] && window.__wfpdfScan.seiten[0].erkennung, null, { timeout: 90000 });
+  await warte(900);
+  await tippe('.scan .scan-weiter', { nachher: 600 });
+  await warteAuf('.scan [data-ergebnis]');
+  await tippe('.scan [data-filter="dokument"]', { nachher: 300 });
+  await page.evaluate(() => B.handWeg());
+  tempo(1);
+  await text('Ein Tipp — und das Foto ist ein <b>sauberes PDF</b>');
+  await warte(1300);
+  tempo(3);
+  await tippe('.scan [data-fertig]', { nachher: 300 });
+  await app.waitForSelector('#sc-ed.on .seite canvas', { timeout: 60000 });
+  await page.evaluate(() => B.handWeg());
+  await warte(900);
+}
+async function hochFelder() {
+  tempo(1);
+  await kapitel('2', 'Ausfüllen');
+  await text('Die App <b>findet die Felder</b> — ohne Internet');
+  tempo(3.5);
+  if (await app.$('#sc-ed.on')) await tippe('#edZurueck', { nachher: 500 });
+  await app.waitForSelector('#sc-bib.on');
+  const [wahl] = await Promise.all([page.waitForEvent('filechooser'), tippe('.import-leiste label:has(#inDatei)', { nachher: 200 })]);
+  await wahl.setFiles(FORM);
+  await page.evaluate(() => B.handWeg());
+  await app.waitForSelector('#sc-ed.on .seite canvas', { timeout: 60000 });
+  await tippe('#edErkennen', { nachher: 500 });
+  await tippe('.dlg [data-off]', { nachher: 300 });
+  await page.evaluate(() => B.handWeg());
+  await app.waitForFunction(() => window.__wfpdf.S.doc.fields.some(f => !f.geprueft), null, { timeout: 60000 });
+  await app.waitForFunction(() => !document.querySelector('.fortschritt'));
+  tempo(1);
+  await warte(1500);
+  tempo(4);
+  await tippe('#vorschlagBand [data-alle]', { nachher: 700 });
+  await text('Jetzt <b>ausfüllen</b>');
+  await tippe('#mAusfuellen', { nachher: 600 });
+  await tippeText((await feld(/^Familienname/)) + ' input', 'Musterfrau');
+  await tippeText((await feld(/^Vorname/)) + ' input', 'Erika');
+  await app.evaluate(() => document.activeElement && document.activeElement.blur());
+  await tippe(await kaestchen(/^Hauptwohnsitz/, 0), { nachher: 400 });
+  await page.evaluate(() => B.handWeg());
+  tempo(1);
+  await warte(1200);
+}
+async function hochUebersetzen() {
+  tempo(1);
+  await kapitel('3', 'Übersetzen');
+  await text('Formular in fremder Sprache? <b>Übersetzen — mit Aufbau</b>');
+  tempo(6);
+  await zurBibliothek();
+  await app.evaluate(() => { window.__wfpdf.S.aktOrdner = 'alle'; window.__wfpdf.suche.zeichneBibliothek(); });
+  await tippe('#ordnerAktionen [data-ueb]', { nachher: 500 });
+  await app.waitForSelector('.dlg [data-dok]', { timeout: 60000 });
+  const umschalten = await app.evaluate(() => [...document.querySelectorAll('.dlg [data-dok]')]
+    .filter(c => c.checked !== /Amtsformular/.test(c.parentNode.textContent)).map(c => c.dataset.dok));
+  for (const id of umschalten) await tippe(`.dlg [data-dok="${id}"]`, { nachher: 200 });
+  await app.waitForSelector('.dlg [data-weg="browser"]:not([disabled])', { timeout: 60000 });
+  await tippe('.dlg [data-nach]', { nachher: 200 });
+  await app.selectOption('.dlg [data-nach]', ZIEL_UE);
+  if (await app.isChecked('.dlg [data-rueck]')) await tippe('.dlg [data-rueck]', { nachher: 200 });
+  await tippe('.dlg [data-weg="browser"]', { nachher: 300 });
+  await page.evaluate(() => B.handWeg());
+  await app.waitForSelector('.dlg [data-oeffne]', { timeout: 90000 });
+  await tippe('.dlg [data-oeffne]', { nachher: 300 });
+  await app.waitForSelector('#sc-ed.on .seite canvas', { timeout: 60000 });
+  await page.evaluate(() => B.handWeg());
+  tempo(1);
+  await text('Gleiches Blatt, <b>neue Sprache</b> — die Felder kommen mit');
+  await warte(500);
+  const r = await rect('.seite[data-i="0"]');
+  await kapitel('', '');                                 // hochkant: die Plakette stünde sonst mitten in der vergrößerten App
+  await page.evaluate(r => B.zoom({ x: r.x, y: r.y, w: r.w, h: r.h * 0.4 }, 1.6), r);
+  await warte(3000);
+  await page.evaluate(() => B.zoom(null));
+  await kapitel('3', 'Übersetzen');
+  await warte(700);
+}
+async function hochSchluss() { tempo(1); await szeneSchluss(); }
+
 // ── Lauf ──
 const klickBasis = await t0();
 await start();
@@ -459,12 +567,14 @@ try {
   const SZENEN = { anfang: szeneAnfang, scannen: szeneScannen, einlesen: szeneEinlesen, ausfuellen: szeneAusfuellen,
     ausgeben: szeneAusgeben, uebersetzen: szeneUebersetzen, suchen: szeneSuchen, ordnen: szeneOrdnen,
     diaschau: szeneDiaschau, schluss: szeneSchluss };
-  const folge = NUR.length ? NUR : probe ? ['anfang', 'scannen', 'schluss'] : Object.keys(SZENEN);
+  Object.assign(SZENEN, { hochAnfang, hochScannen, hochFelder, hochUebersetzen, hochSchluss });
+  const HOCH = ['hochAnfang', 'hochScannen', 'hochFelder', 'hochUebersetzen', 'hochSchluss'];
+  const folge = NUR.length ? NUR : probe ? ['anfang', 'scannen', 'schluss'] : hoch ? HOCH : Object.keys(SZENEN).filter(n => !n.startsWith('hoch'));
   for (const n of folge) { const t = Date.now(); szenen.push({ n, t: t / 1000 }); await SZENEN[n](); console.log(`  ${n}: ${((Date.now() - t) / 1000).toFixed(1)} s`); }
 } catch (e) { console.error('Drehbuch abgebrochen:', e); }
 await warte(400);
 await stop();
 const klicks = await page.evaluate(() => (window.__klicks || []).map(k => performance.timeOrigin + k));
-fs.writeFileSync(path.join(ZIEL, 'zeiten.json'), JSON.stringify({ W, H, bilder, klicks: klicks.map(k => k / 1000), szenen, beginn: klickBasis / 1000 }, null, 1));
+fs.writeFileSync(path.join(ZIEL, 'zeiten.json'), JSON.stringify({ W, H, bilder, klicks: klicks.map(k => k / 1000), szenen, tempi, beginn: klickBasis / 1000 }, null, 1));
 console.log(`${NAME}: ${bilder.length} Bilder in ${((Date.now() - beginn) / 1000).toFixed(1)} s, ${klicks.length} Klicks → ${ZIEL}`);
 await browser.close(); srv.close();

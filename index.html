@@ -51,6 +51,15 @@
   .gitter section{background:var(--karte);border-radius:14px;padding:14px 16px;box-shadow:0 1px 6px rgba(0,0,0,.06);border-top:4px solid var(--rot)}
   .gitter h2{font-size:1.05rem;margin:0 0 4px}
   .gitter p{margin:0;color:#353a44}
+  .kurz{display:flex;gap:18px;align-items:center;background:var(--karte);border-radius:14px;padding:14px 16px;margin:14px 0 26px;box-shadow:0 1px 6px rgba(0,0,0,.06)}
+  .kurz-bild{position:relative;flex:0 0 auto;width:132px;aspect-ratio:9/16;border-radius:12px;overflow:hidden;background:#b3140f;border:0;padding:0;cursor:pointer}
+  .kurz-bild img,.kurz-bild video{display:block;width:100%;height:100%;object-fit:cover}
+  .kurz-bild .play{position:absolute;left:0;right:0;bottom:14px;margin:auto;width:52px;height:52px;border-radius:50%;background:rgba(255,255,255,.92);display:grid;place-items:center;font-size:1.3rem;color:var(--rot)}
+  .kurz h2{font-size:1.05rem;margin:0 0 4px}
+  .kurz p{margin:0 0 10px}
+  .kurz a{font-weight:600}
+  .kurz.offen .kurz-bild{width:min(100%,340px);cursor:default}
+  .kurz.offen{flex-direction:column;align-items:flex-start}
   .tipp{background:#fff;border-left:6px solid #1a73e8;border-radius:12px;padding:14px 16px;margin:8px 0 26px;box-shadow:0 1px 6px rgba(0,0,0,.06)}
   .tipp h2{font-size:1.05rem;margin:0 0 4px}
   .tipp p{margin:0}
@@ -90,6 +99,17 @@
     <span class="fein" data-t="appFein">Läuft im Browser und lässt sich wie eine App installieren.</span>
   </div>
 
+  <div class="kurz" id="kurz">
+    <button type="button" class="kurz-bild" id="kurzBild" aria-label="Kurzfassung abspielen">
+      <img id="kurzPoster" src="assets/poster-hoch-de.jpg" alt="" width="360" height="640" loading="lazy"><span class="play" aria-hidden="true">▶</span>
+    </button>
+    <div>
+      <h2 data-t="kurzT">Kurzfassung: 30 Sekunden hochkant</h2>
+      <p data-t="kurzP">Scannen, ausfüllen, übersetzen — zum Weiterschicken per WhatsApp oder als Status.</p>
+      <a id="kurzLaden" href="assets/workfloh-pdf-hoch.mp4" download="workfloh-pdf-kurz.mp4" data-t="kurzLaden">⬇ Video herunterladen</a>
+    </div>
+  </div>
+
   <div class="gitter">
     <section><h2 data-t="k1">📷 Scannen</h2><p data-t="k1t">Foto machen, das Blatt wird gefunden und gerade gezogen.</p></section>
     <section><h2 data-t="k2">🧩 Felder erkennen</h2><p data-t="k2t">Linien und Kästchen werden zu Feldern — ohne Internet.</p></section>
@@ -114,6 +134,7 @@
 (() => {
   const VIDEO = { de: 'assets/workfloh-pdf-quer.mp4', en: 'assets/workfloh-pdf-quer-en.mp4', ru: 'assets/workfloh-pdf-quer-ru.mp4' };
   const DAUER = { de: '3:44', en: '3:44', ru: '3:46' };
+  const KURZ = { de: 'assets/workfloh-pdf-hoch.mp4', en: 'assets/workfloh-pdf-hoch-en.mp4', ru: 'assets/workfloh-pdf-hoch-ru.mp4' };
   const MARKEN = { de: 'assets/kapitel-quer.json', en: 'assets/kapitel-quer-en.json', ru: 'assets/kapitel-quer-ru.json' };
   const KAP = {
     de: { scannen: 'Scannen', einlesen: 'Einlesen', ausfuellen: 'Ausfüllen', ausgeben: 'Ausgeben', uebersetzen: 'Übersetzen', suchen: 'Suchen', ordnen: 'Ordnen', diaschau: 'Und noch mehr' },
@@ -132,7 +153,9 @@
       tippT: 'Tip: translate documents in the Chrome browser',
       tippP: 'Chrome’s built-in translator gave good results for documents. The app offers the “Translate with Chrome” route for this.',
       recht: 'Legal notice & privacy', musik: 'Music in the video: “Friends” by paulyudin, via Pixabay (Pixabay licence).',
-      spielen: 'Play video', kapitel: 'Chapters'
+      spielen: 'Play video', kapitel: 'Chapters',
+      kurzT: 'Short version: 30 seconds, portrait', kurzP: 'Scan, fill in, translate — to send on via WhatsApp or as a status.',
+      kurzLaden: '⬇ Download video', kurzSpielen: 'Play short version'
     },
     ru: {
       titel: 'Сканировать, заполнять и переводить формуляры — на своём устройстве',
@@ -145,12 +168,14 @@
       tippT: 'Совет: документы лучше переводить в браузере Chrome',
       tippP: 'Встроенный переводчик Chrome хорошо справился с документами. В приложении для этого есть путь «Перевести с Chrome».',
       recht: 'Выходные данные и защита данных (на немецком)', musik: 'Музыка в видео: «Friends», paulyudin, Pixabay (лицензия Pixabay).',
-      spielen: 'Смотреть видео', kapitel: 'Главы'
+      spielen: 'Смотреть видео', kapitel: 'Главы',
+      kurzT: 'Коротко: 30 секунд, вертикально', kurzP: 'Сканировать, заполнить, перевести — чтобы переслать в WhatsApp или поставить в статус.',
+      kurzLaden: '⬇ Скачать видео', kurzSpielen: 'Смотреть короткое видео'
     }
   };
   const DE = {};
   document.querySelectorAll('[data-t]').forEach(el => { DE[el.dataset.t] = el.innerHTML; });
-  DE.spielen = 'Video abspielen'; DE.kapitel = 'Kapitel';
+  DE.spielen = 'Video abspielen'; DE.kapitel = 'Kapitel'; DE.kurzSpielen = 'Kurzfassung abspielen';
 
   const $ = s => document.querySelector(s);
   const buehne = $('#buehne');
@@ -165,6 +190,7 @@
     document.documentElement.lang = sprache;
     $('#abspielen').setAttribute('aria-label', t.spielen);
     $('#kapitel').setAttribute('aria-label', t.kapitel);
+    if ($('#kurzBild')) $('#kurzBild').setAttribute('aria-label', t.kurzSpielen);
   }
 
   function kapitelZeigen() {
@@ -202,17 +228,37 @@
     buehne.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   }
 
+  // Kurzfassung: lädt erst beim Antippen, wie das große Video
+  let kurz = null;
+  function kurzSpielen() {
+    if (!kurz) {
+      kurz = document.createElement('video');
+      kurz.controls = true; kurz.playsInline = true; kurz.preload = 'auto'; kurz.src = KURZ[sprache];
+      // Kein Video IN einem Knopf (Bedienelemente wären dort nicht sicher zu treffen): der Knopf wird ersetzt
+      const rahmen = document.createElement('div'); rahmen.className = 'kurz-bild'; rahmen.id = 'kurzVideo'; rahmen.append(kurz);
+      $('#kurzBild').replaceWith(rahmen); $('#kurz').classList.add('offen');
+    }
+    kurz.play().catch(() => {});
+  }
+  function kurzSprache() {
+    $('#kurzLaden').href = KURZ[sprache];
+    $('#kurzLaden').download = 'workfloh-pdf-kurz' + (sprache === 'de' ? '' : '-' + sprache) + '.mp4';
+    if (kurz) { const lief = !kurz.paused; kurz.src = KURZ[sprache]; if (lief) kurz.play().catch(() => {}); }
+    else $('#kurzPoster').src = 'assets/poster-hoch-' + sprache + '.jpg';
+  }
+
   function waehle(sp) {
     if (!VIDEO[sp]) return;
     sprache = sp; merke('wfpdfpage_sprache', sp);
     document.querySelectorAll('[data-sprache]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.sprache === sp)));
-    texte(); markenLaden();
+    texte(); markenLaden(); kurzSprache();
     if (video) { const lief = !video.paused; video.src = VIDEO[sp]; if (lief) video.play().catch(() => {}); }
     else { $('#poster').src = 'assets/poster-' + sp + '.jpg'; $('#dauer').textContent = DAUER[sp]; }
   }
 
   document.querySelectorAll('[data-sprache]').forEach(b => b.addEventListener('click', () => waehle(b.dataset.sprache)));
   $('#abspielen').addEventListener('click', () => spiele(null));
+  $('#kurzBild').addEventListener('click', kurzSpielen);
   const vorher = lies('wfpdfpage_sprache') ||
     (/^ru\b/i.test(navigator.language || '') ? 'ru' : /^de\b/i.test(navigator.language || '') ? 'de' : (navigator.language ? 'en' : 'de'));
   if (vorher !== 'de' && VIDEO[vorher]) waehle(vorher); else markenLaden();
