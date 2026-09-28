@@ -16,9 +16,23 @@ Ablauf, Bauweise, benannte Grenzen.
   dem Nachbar-Klon `../Workflow-PDF`, **Stand `origin/main`**.
 - **Die Übersetzung im Video ist von Hand geschrieben** (Chromes Übersetzer
   läuft headless nicht). Klaus hat das so entschieden (2026-09-28).
-- **Cache-Bump:** sobald es `sw.js` gibt, `CACHE_VERSION` erhöhen, wenn eine
-  Datei aus dem Vorrat sich ändert.
+- **Cache-Bump:** `CACHE_VERSION` in `sw.js` erhöhen, wenn eine Datei aus
+  `CORE` sich ändert — auch Poster und `kapitel-*.json` nach einem neuen
+  Video. Die MP4s liegen bewusst nicht im Vorrat.
+- **Drei Sprachen:** wer das Drehbuch ändert, baut alle drei Videos neu
+  (`--sprache=de|en|ru`); ein neuer Satz im Band braucht einen Eintrag in
+  `video/texte.json`, sonst meldet die Aufnahme „[ohne Übersetzung]“.
 - Ladezeit-Regeln: Skill `seiten-bauregeln`. Das Video lädt erst beim Antippen.
+
+## Prüfen
+
+```bash
+node tests/seite.mjs    # Seite im echten Browser: Sprachen, Kapitel, Handy, Rechtliches
+```
+
+⚠ Chromium aus Playwright kann kein H.264. Für den Kapitel-Sprung liefert die
+Probe einen WebM-Stellvertreter gleicher Länge — gemessen wird die Seite, nicht
+das Video. Ob das MP4 spielt, sieht man im echten Chrome (Klaus' Sichttest).
 
 ## Netzweit
 

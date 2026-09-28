@@ -1,0 +1,27 @@
+<!doctype html><meta charset="utf-8">
+<style>
+html,body{margin:0;width:1600px;height:1200px;overflow:hidden}
+body{background:
+  radial-gradient(ellipse at 30% 20%,rgba(255,240,215,.55),transparent 60%),
+  repeating-linear-gradient(92deg,#8a5a34 0 14px,#935f37 14px 22px,#80522f 22px 40px,#8f5d35 40px 61px),
+  #8a5a34;perspective:1700px}
+#blatt{position:absolute;left:50%;top:52%;width:760px;transform-origin:50% 50%;
+  transform:translate(-50%,-50%) rotateX(24deg) rotateZ(-7deg) rotateY(-5deg);
+  box-shadow:18px 30px 38px rgba(0,0,0,.45),0 0 2px rgba(0,0,0,.4);background:#fff}
+#blatt canvas{display:block;width:100%}
+#licht{position:absolute;inset:0;background:linear-gradient(115deg,rgba(255,255,255,.18),transparent 40%,rgba(0,0,0,.18));pointer-events:none}
+#stift{position:absolute;left:1180px;top:880px;width:330px;height:22px;border-radius:11px;transform:rotate(-28deg);
+  background:linear-gradient(#2b4fd0,#1a318f);box-shadow:6px 10px 12px rgba(0,0,0,.4)}
+</style>
+<div id="blatt"><canvas id="c"></canvas></div><div id="stift"></div><div id="licht"></div>
+<script src="/app/vendor/pdfjs/pdf.min.js"></script>
+<script>
+(async()=>{
+  pdfjsLib.GlobalWorkerOptions.workerSrc='/app/vendor/pdfjs/pdf.worker.min.js';
+  const doc=await pdfjsLib.getDocument('/app/beispiele/Beispiel-Amtsformular-Bewohnerparkausweis.pdf').promise;
+  const s=await doc.getPage(1); const v=s.getViewport({scale:2.2});
+  const c=document.getElementById('c'); c.width=v.width; c.height=v.height;
+  await s.render({canvasContext:c.getContext('2d'),viewport:v}).promise;
+  window.__fertig=true;
+})();
+</script>
