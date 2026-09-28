@@ -71,12 +71,7 @@
      größer, über den Nachbarn. Am Handy stehen sie ohnehin einzeln und das Bild füllt die Breite. */
   .gitter section{position:relative;transition:transform .22s ease,box-shadow .22s ease}
   @media (min-width:600px){
-    .gitter section{cursor:zoom-in}
-    .gitter section.gross{cursor:zoom-out}
     .gitter section.gross{transform:scale(1.18);z-index:5;box-shadow:0 14px 38px rgba(0,0,0,.24)}
-  }
-  @media (min-width:600px) and (hover:hover){
-    .gitter section:hover{transform:scale(1.18);z-index:5;box-shadow:0 14px 38px rgba(0,0,0,.24)}
   }
   @media (max-width:599px){
     .gitter{grid-template-columns:1fr}
@@ -404,16 +399,21 @@
       const h = x < mitte - r.width * 0.4 ? 'left' : x > mitte + r.width * 0.4 ? 'right' : 'center';
       k.style.transformOrigin = h + ' center';
     };
-    let zeiger = 'mouse';   // mit der Maus wächst die Karte beim Zeigen, ein Klick schaltet nichts fest
+    /* Maus: allein das Darüberfahren vergrößert, Wegziehen verkleinert — kein Klick, keine Lupe.
+       Bewusst per Zeiger-Ereignis statt CSS :hover: Chrome auf dem Tablet meldet mit angeschlossener
+       Maus oft „(hover: none)" (Klaus 2026-09-28: die Lupe kam, vergrößert hat nichts).
+       Finger: Antippen vergrößert, noch einmal oder daneben tippen verkleinert. */
+    const aus = () => karten.forEach(x => x.classList.remove('gross'));
+    const an = k => { ursprung(k); aus(); k.classList.add('gross'); };
+    let zeiger = 'mouse';
     karten.forEach(k => {
-      k.addEventListener('pointerenter', () => ursprung(k));
+      k.addEventListener('pointerenter', e => { if (e.pointerType !== 'touch') an(k); });
+      k.addEventListener('pointerleave', e => { if (e.pointerType !== 'touch') k.classList.remove('gross'); });
       k.addEventListener('pointerdown', e => { zeiger = e.pointerType; });
       k.addEventListener('click', e => {
-        if (zeiger === 'mouse' || e.target.closest('a,button')) return;
-        ursprung(k);
-        const an = !k.classList.contains('gross');
-        karten.forEach(x => x.classList.remove('gross'));
-        if (an) k.classList.add('gross');
+        if (zeiger !== 'touch' || e.target.closest('a,button')) return;
+        const war = k.classList.contains('gross');
+        aus(); if (!war) an(k);
       });
     });
     document.addEventListener('click', e => { if (!e.target.closest('.gitter section')) karten.forEach(x => x.classList.remove('gross')); });
