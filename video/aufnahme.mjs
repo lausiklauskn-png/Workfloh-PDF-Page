@@ -421,6 +421,21 @@ async function szeneDiaschau() {
   await kapitel('8', 'Und noch mehr');
   for (let i = 0; i < FOLIEN.length; i++) {
     const [sym, t, u, art] = FOLIEN[i];
+    if (process.env.DIAG) {
+      setTimeout(async () => {
+        try {
+          const d = await page.evaluate(() => { const k = document.getElementById('karte'), c = getComputedStyle(k);
+            const r = k.getBoundingClientRect();
+            const oben = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
+            return { vis: c.visibility, op: c.opacity, fil: c.filter, tr: c.transform, clip: c.clipPath, z: c.zIndex,
+              anim: k.getAnimations().map(a => a.playState + ':' + a.currentTime), oben: oben && (oben.id || oben.className || oben.tagName),
+              alle: document.getAnimations().length };
+          });
+          console.log('DIAG', i, JSON.stringify(d));
+          await page.screenshot({ path: `/tmp/claude-0/-home-user/bae2be67-8dce-51e3-98b6-cdd958b627d8/scratchpad/diag${i}.jpg`, type: 'jpeg', quality: 60 });
+        } catch (e) { console.log('DIAG-Fehler', e.message); }
+      }, 1500);
+    }
     await karte(`<div class="sym auf">${sym}</div><h1 class="auf">${L(t)}</h1><p class="auf">${L(u)}</p><div class="zaehler">${i + 1} / ${FOLIEN.length}</div>`, art, null, 1900, 'folie');
   }
   await kartenWeg('blende');
