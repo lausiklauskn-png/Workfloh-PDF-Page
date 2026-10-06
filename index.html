@@ -116,7 +116,7 @@
 <main class="wrap">
   <div class="held">
     <h1 data-t="titel">Formulare scannen, ausfüllen und übersetzen — auf dem eigenen Gerät</h1>
-    <p class="unter" data-t="unter">Kostenlos, ohne Konto. Die Dokumente bleiben auf dem Gerät. Das Video zeigt in knapp vier Minuten, wie es geht.</p>
+    <p class="unter" data-t="unter">Kostenlos, ohne Konto. Die Dokumente bleiben auf dem Gerät.</p>
   </div>
 
   <div class="buehne" id="buehne">
@@ -134,7 +134,6 @@
   <section class="neu" id="neu">
     <span class="marke" data-t="neuMarke">NEU</span>
     <h2 data-t="neuT">🛡 Versteckte Befehle erkennen</h2>
-    <p data-t="neuP">Der kurze Film nach dem Erklärvideo: Workfloh PDF prüft jede Datei schon beim Einlesen — unsichtbaren Text im PDF, blasse Schrift im Foto und Botschaften in den Bildpunkten. Was es findet, wird rot markiert, nicht gelöscht.</p>
     <button type="button" class="neu-bild" id="neuBild" aria-label="Film abspielen">
       <img id="neuPoster" src="assets/poster-neu-befehle-quer-de.jpg" alt="" width="960" height="540" loading="lazy"><span class="play" aria-hidden="true">▶</span><span class="dauer">1:12</span>
     </button>
@@ -146,7 +145,6 @@
       <img id="kurzPoster" src="assets/poster-hochvoll-de.jpg" alt="" width="720" height="1280" loading="lazy"><span class="play" aria-hidden="true">▶</span><span class="dauer" id="kurzDauer">3:39</span>
     </button>
     <h2 data-t="kurzT">Das ganze Video hochkant</h2>
-    <p data-t="kurzP">Dasselbe Video, aufgenommen im Handy-Hochformat — so, wie die App meist in der Hand benutzt wird.</p>
     <a id="kurzLaden" href="assets/workfloh-pdf-hochvoll.mp4" download="workfloh-pdf-hochkant.mp4" data-t="kurzLaden">⬇ Video herunterladen</a>
   </div>
 
@@ -210,7 +208,7 @@
   const TXT = {
     en: {
       titel: 'Scan, fill in and translate forms — on your own device',
-      unter: 'Free, no account. Your documents stay on your device. The video shows how it works in just under four minutes.',
+      unter: 'Free, no account. Your documents stay on your device.',
       appOeffnen: 'Open Workfloh PDF →', appFein: 'Runs in the browser and can be installed like an app.',
       kannT: 'What Workfloh PDF can do',
       k1: '📷 Scan',
@@ -249,14 +247,12 @@
       tippP: 'Chrome’s built-in translator gave good results for documents. The app offers the “Translate with Chrome” route for this.',
       recht: 'Legal notice & privacy', musik: 'Music in the video: “Friends” by paulyudin; in the film “Spot hidden commands”: “Risk” by studiokolomna — both via Pixabay (Pixabay licence).',
       spielen: 'Play video', kapitel: 'Chapters',
-      kurzT: 'The whole video in portrait', kurzP: 'The same video, recorded in phone portrait format — the way the app is mostly used in the hand.',
-      kurzLaden: '⬇ Download video', kurzSpielen: 'Play portrait video',
-      neuMarke: 'NEW', neuT: '🛡 Spot hidden commands', neuSpielen: 'Play film',
-      neuP: 'The short film after the explainer video: Workfloh PDF checks every file as it comes in — invisible text in a PDF, faint writing in a photo and messages hidden in the pixels. Whatever it finds is marked red, not deleted.'
+      kurzT: 'The whole video in portrait', kurzLaden: '⬇ Download video', kurzSpielen: 'Play portrait video',
+      neuMarke: 'NEW', neuT: '🛡 Spot hidden commands', neuSpielen: 'Play film'
     },
     ru: {
       titel: 'Сканировать, заполнять и переводить формуляры — на своём устройстве',
-      unter: 'Бесплатно, без регистрации. Документы остаются на устройстве. Видео за неполные четыре минуты показывает, как это работает.',
+      unter: 'Бесплатно, без регистрации. Документы остаются на устройстве.',
       appOeffnen: 'Открыть Workfloh PDF →', appFein: 'Работает в браузере, можно установить как приложение.',
       kannT: 'Что умеет Workfloh PDF',
       k1: '📷 Сканирование',
@@ -295,10 +291,8 @@
       tippP: 'Встроенный переводчик Chrome хорошо справился с документами. В приложении для этого есть путь «Перевести с Chrome».',
       recht: 'Выходные данные и защита данных (на немецком)', musik: 'Музыка в видео: «Friends», paulyudin; в фильме о скрытых командах: «Risk», studiokolomna — обе через Pixabay (лицензия Pixabay).',
       spielen: 'Смотреть видео', kapitel: 'Главы',
-      kurzT: 'Всё видео вертикально', kurzP: 'То же видео, снятое в вертикальном формате телефона — так приложением чаще всего пользуются в руке.',
-      kurzLaden: '⬇ Скачать видео', kurzSpielen: 'Смотреть вертикальное видео',
-      neuMarke: 'НОВОЕ', neuT: '🛡 Распознать скрытые команды', neuSpielen: 'Смотреть фильм',
-      neuP: 'Короткий фильм после обучающего видео: Workfloh PDF проверяет каждый файл уже при загрузке — невидимый текст в PDF, бледный текст на фото и послания в пикселях. Найденное отмечается красным, а не удаляется.'
+      kurzT: 'Всё видео вертикально', kurzLaden: '⬇ Скачать видео', kurzSpielen: 'Смотреть вертикальное видео',
+      neuMarke: 'НОВОЕ', neuT: '🛡 Распознать скрытые команды', neuSpielen: 'Смотреть фильм'
     }
   };
   const DE = {};
