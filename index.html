@@ -66,6 +66,17 @@
   .kurz p{margin:0 0 10px}
   .kurz a{font-weight:600}
   .kurz.offen .kurz-bild{cursor:default}
+  /* Angeheftet (Klaus 2026-10-06): der kurze Film „Versteckte Befehle erkennen" — quer 16:9, am Handy hochkant 9:16 */
+  .neu{max-width:760px;margin:22px auto 8px;background:#0f1328;color:#fff;border-radius:16px;padding:14px 16px 16px;box-shadow:0 6px 24px rgba(0,0,0,.18)}
+  .neu .marke{display:inline-block;background:var(--rot);color:#fff;font-weight:800;font-size:.8rem;letter-spacing:.06em;border-radius:6px;padding:2px 8px;margin-bottom:6px}
+  .neu h2{font-size:1.2rem;margin:0 0 4px}
+  .neu p{margin:0 0 12px;color:#c7d0f0}
+  .neu-bild{position:relative;display:block;width:100%;aspect-ratio:16/9;border-radius:12px;overflow:hidden;background:#000;border:0;padding:0;margin:0 auto;cursor:pointer}
+  .neu .kapitel button{background:#1b2140;color:#fff;border-color:#3c4a8a}
+  .neu .kapitel button:hover,.neu .kapitel button.jetzt{background:#2a1418;border-color:var(--rot)}
+  .neu-bild.hoch{aspect-ratio:9/16;max-width:360px}
+  .neu-bild img,.neu-bild video{display:block;width:100%;height:100%;object-fit:contain;background:#000}
+  .neu-bild .play{position:absolute;inset:0;margin:auto;width:64px;height:64px;border-radius:50%;background:var(--rot);display:grid;place-items:center;font-size:1.5rem;color:#fff;box-shadow:0 4px 18px rgba(0,0,0,.35)}
   .gitter .bild{display:block;width:100%;max-width:260px;height:auto;margin:0 auto 12px;border-radius:10px;border:1px solid #e3e5ea;background:#f4f5f7}
   /* Karten wachsen (Klaus 2026-09-28): ab 600 px Breite beim Zeigen mit der Maus oder beim Antippen
      größer, über den Nachbarn. Am Handy stehen sie ohnehin einzeln und das Bild füllt die Breite. */
@@ -120,6 +131,16 @@
     <span class="fein" data-t="appFein">Läuft im Browser und lässt sich wie eine App installieren.</span>
   </div>
 
+  <section class="neu" id="neu">
+    <span class="marke" data-t="neuMarke">NEU</span>
+    <h2 data-t="neuT">🛡 Versteckte Befehle erkennen</h2>
+    <p data-t="neuP">Der kurze Film nach dem Erklärvideo: Workfloh PDF prüft jede Datei schon beim Einlesen — unsichtbaren Text im PDF, blasse Schrift im Foto und Botschaften in den Bildpunkten. Was es findet, wird rot markiert, nicht gelöscht.</p>
+    <button type="button" class="neu-bild" id="neuBild" aria-label="Film abspielen">
+      <img id="neuPoster" src="assets/poster-neu-befehle-quer-de.jpg" alt="" width="960" height="540" loading="lazy"><span class="play" aria-hidden="true">▶</span><span class="dauer">1:12</span>
+    </button>
+    <ul class="kapitel" id="neuKapitel" aria-label="Kapitel"></ul>
+  </section>
+
   <div class="kurz" id="kurz">
     <button type="button" class="kurz-bild" id="kurzBild" aria-label="Hochformat-Video abspielen">
       <img id="kurzPoster" src="assets/poster-hochvoll-de.jpg" alt="" width="720" height="1280" loading="lazy"><span class="play" aria-hidden="true">▶</span><span class="dauer" id="kurzDauer">3:39</span>
@@ -168,7 +189,7 @@
 <footer>
   <div class="wrap">
     <a href="impressum.html" data-t="recht">Impressum &amp; Datenschutz</a>
-    <span data-t="musik">Musik im Video: „Friends" von paulyudin, über Pixabay (Pixabay-Lizenz).</span>
+    <span data-t="musik">Musik im Video: „Friends" von paulyudin, im Film „Versteckte Befehle": „Risk" von studiokolomna — beide über Pixabay (Pixabay-Lizenz).</span>
   </div>
 </footer>
 
@@ -226,10 +247,12 @@
       v4t: 'The interface speaks Deutsch, English, Русский and العربية.',
       tippT: 'Tip: translate documents in the Chrome browser',
       tippP: 'Chrome’s built-in translator gave good results for documents. The app offers the “Translate with Chrome” route for this.',
-      recht: 'Legal notice & privacy', musik: 'Music in the video: “Friends” by paulyudin, via Pixabay (Pixabay licence).',
+      recht: 'Legal notice & privacy', musik: 'Music in the video: “Friends” by paulyudin; in the film “Spot hidden commands”: “Risk” by studiokolomna — both via Pixabay (Pixabay licence).',
       spielen: 'Play video', kapitel: 'Chapters',
       kurzT: 'The whole video in portrait', kurzP: 'The same video, recorded in phone portrait format — the way the app is mostly used in the hand.',
-      kurzLaden: '⬇ Download video', kurzSpielen: 'Play portrait video'
+      kurzLaden: '⬇ Download video', kurzSpielen: 'Play portrait video',
+      neuMarke: 'NEW', neuT: '🛡 Spot hidden commands', neuSpielen: 'Play film',
+      neuP: 'The short film after the explainer video: Workfloh PDF checks every file as it comes in — invisible text in a PDF, faint writing in a photo and messages hidden in the pixels. Whatever it finds is marked red, not deleted.'
     },
     ru: {
       titel: 'Сканировать, заполнять и переводить формуляры — на своём устройстве',
@@ -270,15 +293,17 @@
       v4t: 'Интерфейс: Deutsch, English, Русский и العربية.',
       tippT: 'Совет: документы лучше переводить в браузере Chrome',
       tippP: 'Встроенный переводчик Chrome хорошо справился с документами. В приложении для этого есть путь «Перевести с Chrome».',
-      recht: 'Выходные данные и защита данных (на немецком)', musik: 'Музыка в видео: «Friends», paulyudin, Pixabay (лицензия Pixabay).',
+      recht: 'Выходные данные и защита данных (на немецком)', musik: 'Музыка в видео: «Friends», paulyudin; в фильме о скрытых командах: «Risk», studiokolomna — обе через Pixabay (лицензия Pixabay).',
       spielen: 'Смотреть видео', kapitel: 'Главы',
       kurzT: 'Всё видео вертикально', kurzP: 'То же видео, снятое в вертикальном формате телефона — так приложением чаще всего пользуются в руке.',
-      kurzLaden: '⬇ Скачать видео', kurzSpielen: 'Смотреть вертикальное видео'
+      kurzLaden: '⬇ Скачать видео', kurzSpielen: 'Смотреть вертикальное видео',
+      neuMarke: 'НОВОЕ', neuT: '🛡 Распознать скрытые команды', neuSpielen: 'Смотреть фильм',
+      neuP: 'Короткий фильм после обучающего видео: Workfloh PDF проверяет каждый файл уже при загрузке — невидимый текст в PDF, бледный текст на фото и послания в пикселях. Найденное отмечается красным, а не удаляется.'
     }
   };
   const DE = {};
   document.querySelectorAll('[data-t]').forEach(el => { DE[el.dataset.t] = el.innerHTML; });
-  DE.spielen = 'Video abspielen'; DE.kapitel = 'Kapitel'; DE.kurzSpielen = 'Hochformat-Video abspielen';
+  DE.spielen = 'Video abspielen'; DE.kapitel = 'Kapitel'; DE.kurzSpielen = 'Hochformat-Video abspielen'; DE.neuSpielen = 'Film abspielen';
 
   const $ = s => document.querySelector(s);
   const buehne = $('#buehne');
@@ -294,6 +319,7 @@
     $('#abspielen').setAttribute('aria-label', t.spielen);
     $('#kapitel').setAttribute('aria-label', t.kapitel);
     if ($('#kurzBild')) $('#kurzBild').setAttribute('aria-label', t.kurzSpielen);
+    if ($('#neuBild')) $('#neuBild').setAttribute('aria-label', t.neuSpielen);
   }
 
   function kapitelZeigen() {
@@ -419,6 +445,45 @@
     document.addEventListener('click', e => { if (!e.target.closest('.gitter section')) karten.forEach(x => x.classList.remove('gross')); });
     document.addEventListener('keydown', e => { if (e.key === 'Escape') karten.forEach(x => x.classList.remove('gross')); });
   })();
+  // Der kurze Film „Versteckte Befehle erkennen": lädt erst beim Antippen; hochkant die Hochformat-Fassung
+  const neuQuelle = () => 'assets/neu-befehle-' + (hoch() ? 'hoch' : 'quer') + (sprache === 'de' ? '' : '-' + sprache) + '.mp4';
+  const neuPoster = () => 'assets/poster-neu-befehle-' + (hoch() ? 'hoch' : 'quer') + '-' + sprache + '.jpg';
+  let neuVid = null, neuMarken = [];
+  // Kapitel des kurzen Films (Klaus 2026-10-06: springen, anhalten, studieren) — Sekunden aus assets/kapitel-neu-befehle.json
+  const NEUKAP = {
+    de: { taeter: 'Der Täter', ki: 'Die KI gehorcht', trick1: 'Trick 1', trick2: 'Trick 2', trick3: 'Trick 3', schutz: 'Der Schutz', ueberblick: 'Überblick' },
+    en: { taeter: 'The scammer', ki: 'The AI obeys', trick1: 'Trick 1', trick2: 'Trick 2', trick3: 'Trick 3', schutz: 'The protection', ueberblick: 'Overview' },
+    ru: { taeter: 'Мошенник', ki: 'ИИ подчиняется', trick1: 'Трюк 1', trick2: 'Трюк 2', trick3: 'Трюк 3', schutz: 'Защита', ueberblick: 'Обзор' }
+  };
+  function neuKapitelZeigen() {
+    const ul = $('#neuKapitel'); ul.textContent = '';
+    neuMarken.filter(m => NEUKAP[sprache][m.n]).forEach(m => {
+      const li = document.createElement('li'), b = document.createElement('button'), nr = document.createElement('b');
+      b.type = 'button'; b.dataset.t0 = m.t; nr.textContent = zeit(m.t); b.append(nr, NEUKAP[sprache][m.n]);
+      b.addEventListener('click', () => { neuSpielen(); const v = neuVid, los = () => { v.currentTime = m.t; v.play().catch(() => {}); };
+        if (v.readyState >= 1) los(); else v.addEventListener('loadedmetadata', los, { once: true }); });
+      li.append(b); ul.append(li);
+    });
+  }
+  fetch('assets/kapitel-neu-befehle.json').then(r => r.ok ? r.json() : []).catch(() => []).then(m => { neuMarken = m; neuKapitelZeigen(); });
+  function neuStand() {
+    const rahmen = neuVid ? neuVid.parentElement : $('#neuBild');
+    rahmen.classList.toggle('hoch', hoch());
+    if (neuVid) { const ziel = abs(neuQuelle()); if (neuVid.src !== ziel) { const lief = !neuVid.paused; neuVid.src = ziel; neuVid.poster = neuPoster(); if (lief) neuVid.play().catch(() => {}); } }
+    else $('#neuPoster').src = neuPoster();
+    if ($('#neuKapitel')) neuKapitelZeigen();
+  }
+  function neuSpielen() {
+    if (!neuVid) {
+      neuVid = document.createElement('video');
+      neuVid.controls = true; neuVid.playsInline = true; neuVid.preload = 'auto'; neuVid.poster = neuPoster(); neuVid.src = neuQuelle();
+      const rahmen = document.createElement('div'); rahmen.className = 'neu-bild' + (hoch() ? ' hoch' : ''); rahmen.id = 'neuVideo'; rahmen.append(neuVid);
+      $('#neuBild').replaceWith(rahmen);
+      neuVid.addEventListener('timeupdate', () => { let akt = null; document.querySelectorAll('#neuKapitel button').forEach(b => { if (+b.dataset.t0 <= neuVid.currentTime + .2) akt = b; });
+        document.querySelectorAll('#neuKapitel button').forEach(b => b.classList.toggle('jetzt', b === akt)); });
+    }
+    neuVid.play().catch(() => {});
+  }
   function kurzSprache() {
     $('#kurzLaden').href = KURZ[sprache];
     $('#kurzLaden').download = 'workfloh-pdf-hochkant' + (sprache === 'de' ? '' : '-' + sprache) + '.mp4';
@@ -432,7 +497,7 @@
     if (!VIDEO[sp]) return;
     sprache = sp; merke('wfpdfpage_sprache', sp);
     document.querySelectorAll('[data-sprache]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.sprache === sp)));
-    texte(); markenLaden(); kurzSprache();
+    texte(); markenLaden(); kurzSprache(); neuStand();
     if (video) {
       if (zweit) { zweit.remove(); zweit = null; }
       const lief = !video.paused; video.src = quelle();
@@ -444,6 +509,9 @@
   document.querySelectorAll('[data-sprache]').forEach(b => b.addEventListener('click', () => waehle(b.dataset.sprache)));
   $('#abspielen').addEventListener('click', () => spiele(null));
   $('#kurzBild').addEventListener('click', kurzSpielen);
+  $('#neuBild').addEventListener('click', neuSpielen);
+  LAGE.addEventListener('change', neuStand);
+  neuStand();
   LAGE.addEventListener('change', lageSetzen);
   document.addEventListener('fullscreenchange', lageSetzen);
   document.addEventListener('webkitfullscreenchange', lageSetzen);

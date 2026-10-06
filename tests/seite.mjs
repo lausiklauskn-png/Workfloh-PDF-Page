@@ -30,7 +30,11 @@ let STELLV = null;
 try {
   const { execFileSync } = await import('node:child_process');
   const os = await import('node:os');
-  const FF = process.env.FFMPEG || execFileSync('python3', ['-c', 'import imageio_ffmpeg;print(imageio_ffmpeg.get_ffmpeg_exe())']).toString().trim();
+  // ffmpeg: FFMPEG, sonst imageio_ffmpeg, sonst das System — nur das Python-Paket zu fragen machte den Sprung ohne es ROT
+  const FF = process.env.FFMPEG || (() => {
+    try { return execFileSync('python3', ['-c', 'import imageio_ffmpeg;print(imageio_ffmpeg.get_ffmpeg_exe())'], { stdio: ['ignore', 'pipe', 'ignore'] }).toString().trim(); }
+    catch { return execFileSync('sh', ['-c', 'command -v ffmpeg']).toString().trim(); }
+  })();
   STELLV = path.join(fs.mkdtempSync(path.join(os.tmpdir(), 'seite-')), 'stellv.webm');
   execFileSync(FF, ['-y', '-loglevel', 'error', '-f', 'lavfi', '-i', 'color=c=black:s=64x36:r=1:d=240', '-c:v', 'libvpx-vp9', '-b:v', '20k', STELLV]);
 } catch { STELLV = null; }
@@ -88,6 +92,12 @@ try {
     fs.existsSync(path.join(WURZEL, `assets/workfloh-pdf-quer${s}.mp4`)) && fs.existsSync(path.join(WURZEL, `assets/kapitel-quer${s}.json`))) &&
     ['de', 'en', 'ru'].every(s => fs.existsSync(path.join(WURZEL, `assets/poster-${s}.jpg`))));
 
+  // 1a · Neu: der Abschnitt steht da, deutsch, Standbild lädt, und es liegt jede Datei, auf die er zeigt
+  ok('Neu: Abschnitt „Versteckte Befehle erkennen" steht da', /Versteckte Befehle erkennen/.test(await p.textContent('#neu h2')));
+  ok('Neu: Standbild quer, deutsch, lädt', await p.$eval('#neuPoster', i => { i.loading = 'eager'; return true; }) &&
+    await p.waitForFunction(() => { const i = document.getElementById('neuPoster'); return i.complete && i.naturalWidth > 0 && /poster-neu-befehle-quer-de\.jpg$/.test(i.src); }, null, { timeout: 5000 }).then(() => true, () => false));
+  const fehlt = ['quer', 'hoch'].flatMap(l => ['de', 'en', 'ru'].flatMap(sp => ['assets/neu-befehle-' + l + (sp === 'de' ? '' : '-' + sp) + '.mp4', 'assets/poster-neu-befehle-' + l + '-' + sp + '.jpg'])).filter(f => !fs.existsSync(path.join(WURZEL, f)));
+  ok('Neu: alle sechs Filme und Standbilder liegen im Depot (die App verlinkt sie)', fehlt.length === 0, fehlt.join(', '));
   // 1b · Das ganze Video hochkant (Klaus 2026-09-28: die 30-s-Fassung ist raus): Poster da, Video erst beim Antippen
   ok('Hochformat: Poster steht da', await p.$eval('#kurzPoster', i => { i.loading = 'eager'; return true; }) &&
     await p.waitForFunction(() => { const i = document.getElementById('kurzPoster'); return i.complete && i.naturalWidth > 0; }, null, { timeout: 5000 }).then(() => true, () => false));
@@ -160,6 +170,14 @@ try {
   // Die echte Länge steht in den Marken: Schluss beginnt nach über drei Minuten
   ok('… das Video trägt mehr als drei Minuten Kapitel', marken[marken.length - 1].t > 180);
 
+  // 3a · Angeheftet (Klaus 2026-10-06): der kurze Film „Versteckte Befehle erkennen" — russisch, erst auf Tipp, nicht in einem Knopf
+  ok('Neu: Titel russisch', /Распознать скрытые команды/.test(await p.textContent('#neu h2')));
+  ok('Neu: Standbild quer, russisch', /poster-neu-befehle-quer-ru\.jpg$/.test(await p.getAttribute('#neuPoster', 'src')));
+  ok('Neu: vor dem Tipp kein Video', !(await p.$('#neu video')));
+  await p.click('#neuBild');
+  const nv = await p.evaluate(() => { const v = document.querySelector('#neuVideo video'); return v && { src: v.getAttribute('src'), imKnopf: !!v.closest('button'), controls: v.controls }; });
+  ok('Neu: Antippen legt den russischen Film quer an, mit Bedienelementen, nicht in einem Knopf', nv && /neu-befehle-quer-ru\.mp4$/.test(nv.src) && !nv.imKnopf && nv.controls, JSON.stringify(nv));
+  await p.$eval('#neuVideo video', v => v.pause());
   // 3b · Hochformat-Video antippen: eigenes Video, russisch, nicht in einem Knopf
   await p.click('#kurzBild');
   await p.waitForFunction(() => { const v = document.querySelector('#kurzVideo video'); return v && v.readyState >= 1; }, null, { timeout: 15000 }).catch(() => {});
@@ -206,6 +224,8 @@ try {
   ok('Hochkant: die Seite erkennt es von selbst', L.hoch, JSON.stringify(L));
   ok('Hochkant: Poster der Hochkant-Fassung, Länge wie das ganze Video', /poster-hochvoll-en\.jpg$/.test(L.poster) && L.dauer === '3:40', JSON.stringify(L));
   ok('Hochkant: die Kapitel stehen auch hochkant da (gleiche Sekunden)', L.kapitel, JSON.stringify(L));
+  const nh = await q.evaluate(() => ({ src: document.getElementById('neuPoster').getAttribute('src'), hoch: document.getElementById('neuBild').classList.contains('hoch'), w: document.getElementById('neuBild').getBoundingClientRect().width }));
+  ok('Neu hochkant: Standbild der Hochkant-Fassung (englisch), Rahmen 9:16 und nicht breiter als das Fenster', /poster-neu-befehle-hoch-en\.jpg$/.test(nh.src) && nh.hoch && nh.w <= 360, JSON.stringify(nh));
   ok('Hochkant: die Bühne steht hochkant und passt ins Fenster', L.buehne.h > L.buehne.w && L.buehne.h <= 740, JSON.stringify(L.buehne));
   ok('für jede Sprache liegt die ganze Hochkant-Fassung samt Poster da', ['', '-en', '-ru'].every(s => fs.existsSync(path.join(WURZEL, `assets/workfloh-pdf-hochvoll${s}.mp4`))) &&
     ['de', 'en', 'ru'].every(s => fs.existsSync(path.join(WURZEL, `assets/poster-hochvoll-${s}.jpg`))));

@@ -3,14 +3,15 @@
 // Netz: der Browser holt sie in Stücken (Range-Anfragen), und drei Videos
 // vorab in den Vorrat zu legen hieße, 75 MB auf den ersten Besuch zu laden.
 // Wer eine Datei aus CORE ändert, erhöht CACHE_VERSION.
-const CACHE_VERSION = 'workfloh-pdf-page-v11';
+const CACHE_VERSION = 'workfloh-pdf-page-v12';
 const CORE = [
   './', 'index.html', 'impressum.html', 'manifest.webmanifest',
   'icons/favicon-32.png?v=1', 'icons/apple-touch-icon.png?v=1', 'icons/w-floh-160.png?v=1',
   'icons/icon-192.png', 'icons/icon-512.png',
   'assets/poster-de.jpg', 'assets/poster-en.jpg', 'assets/poster-ru.jpg',
   'assets/poster-hochvoll-de.jpg', 'assets/poster-hochvoll-en.jpg', 'assets/poster-hochvoll-ru.jpg',
-  'assets/kapitel-quer.json', 'assets/kapitel-quer-en.json', 'assets/kapitel-quer-ru.json'
+  'assets/kapitel-quer.json', 'assets/kapitel-quer-en.json', 'assets/kapitel-quer-ru.json', 'assets/kapitel-neu-befehle.json',
+  'assets/poster-neu-befehle-quer-de.jpg', 'assets/poster-neu-befehle-quer-en.jpg', 'assets/poster-neu-befehle-quer-ru.jpg'
 ];
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE_VERSION).then(c => Promise.all(CORE.map(u => c.add(u).catch(() => {})))).then(() => self.skipWaiting()));
