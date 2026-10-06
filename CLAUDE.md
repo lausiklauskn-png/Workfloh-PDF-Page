@@ -52,6 +52,30 @@ Ablauf, Bauweise, benannte Grenzen.
   **Wer diese Dateien umbenennt, zieht dort das Feld `video` in `assets/config/listings.js` nach** (beide Depots) —
   sonst steht auf den Marktplätzen ein Video, das nicht lädt. Kopiert wird nichts.
 - Ladezeit-Regeln: Skill `seiten-bauregeln`. Beide Videos laden erst beim Antippen.
+- **🛡 Angeheftet: „Versteckte Befehle erkennen" (Klaus 2026-10-06: „ein zweites Video anheften … Wow-Effekt …
+  Graphic Motion … mit Musikuntermalung" · „deutlich zu erkennen, welche Methoden die Gangster anwenden" · „so lange
+  wie die Musik … wie der Befehl hineinkommt in die Datei und dann eine KI dazu veranlasst, falsche Befehle auszuführen").**
+  Kein Mitschnitt der App, sondern Bewegungsgrafik: `video/neu-befehle.html` zeichnet jedes Bild auf einem Canvas
+  (`render(t)`, ohne Uhr und ohne Zufall), `node video/neu-befehle.mjs --alle` fotografiert Bild für Bild (30 fps,
+  **72,5 s = so lang wie die Musik**) und legt `assets/neu-befehle-{quer,hoch}[-en|-ru].mp4`,
+  `assets/poster-neu-befehle-<lage>-<sprache>.jpg` und `assets/kapitel-neu-befehle.json` ab (System-ffmpeg).
+  Ablauf, auf die gemessenen Höhepunkte der Musik gelegt (16 s und 48 s): Titel · der Täter (Kapuze, Gaunermaske)
+  tippt den Befehl in eine Rechnung und macht ihn weiß und winzig · die Datei kommt per E-Mail, man gibt sie einer
+  KI · **die KI gehorcht** und schickt die Dateien weg · Trick 1/2/3 (je erst „TRICK" mit Werkzeugkasten des Täters,
+  dann „ERKANNT": weiß auf weiß · blass im Foto mit Kontrast-Spreizung wie `kontrastStrecken` · Bits in den
+  Bildpunkten wie die LSB-Prüfung) · **mit Workfloh PDF fällt es auf** · Überblick mit den weiteren Funden
+  (außerhalb der Seite, Bild-Metadaten, unsichtbare Zeichen, Datei im PDF — alle in `pruefer-anhang.js` gemeldet) · Schluss.
+  Die Zeiten stehen EINMAL oben in `neu-befehle.html` (`ZT`, `ZK`, `Z1` …); Geräusche (`TOENE`) und Kapitel
+  (`KAPITEL`) werden daraus gerechnet. **Die App trägt die Kapitel-Sekunden als `KAPITEL_NEU` in `assets/app.js`
+  — wer hier die Zeiten schiebt, zieht dort nach.**
+  **Musik:** „Risk" von studiokolomna (Pixabay, Audio-ID 136788, Lizenz-Beleg bei Klaus). Darf im Video laufen, die
+  Datei wird nicht weitergegeben — `MUSIK=/pfad/risk.mp3 node video/neu-befehle.mjs --alle`. Ohne `MUSIK` nur
+  Geräusche, und die Ausgabe sagt das. Genannt im Impressum und unter dem Video.
+  `--behalten` lässt die Einzelbilder in `video/_roh/`, dann baut `--nur-schnitt` nur den Ton neu (Sekunden statt Minuten).
+  **Die App verlinkt die sechs Dateien** (Erklärvideo-Dialog: Knopf „▶ Neu: Versteckte Befehle" mit 7 Kapiteln, und
+  nach dem Ende des Erklärvideos läuft der Film von selbst) — umbenennen bricht dort `videoFuer(…, 'neu')`.
+  Auf dieser Seite: Abschnitt `#neu` unter dem großen Video, erst auf Tipp, hochkant die Hochformat-Fassung, Kapitel darunter.
+  ⚠ Nicht gemessen: wie es am Tablet wirkt (Tempo, Lesbarkeit der kleinen Schrift hochkant) — Klaus' Sichttest.
 
 ## Prüfen
 
