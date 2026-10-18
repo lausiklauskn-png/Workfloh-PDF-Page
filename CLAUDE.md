@@ -87,6 +87,17 @@ node tests/seite.mjs    # Seite im echten Browser: Sprachen, Kapitel, Handy, Rec
 Probe einen WebM-Stellvertreter gleicher Länge — gemessen wird die Seite, nicht
 das Video. Ob das MP4 spielt, sieht man im echten Chrome (Klaus' Sichttest).
 
+## ⬇ Installieren-Knopf (2026-10-18)
+
+Klaus: *„Den Installieren-Button überall fest einbauen … Wenn es kein Einstellungsfeld gibt, dann oben ins Menü."*
+Die Seite hat keine Einstellungen; ⬇ steht hinten in der Kopfzeile nach DE/EN/RU (`data-in=".kopf"`, eigene Regel
+im `<style>` im Stil der Sprach-Knöpfe, unter 560 px nur das Zeichen, unter 400 px enger gesetzt, damit
+„Workfloh PDF" bei 360 px einzeilig bleibt). `assets/installieren.js` ist byte-1:1 aus Sage-Protokol (SHA-256
+`e0644084…c3c3`) — dort pflegen, hier neu kopieren. Als installierte App verschwindet er; Russisch zeigt den Knopf
+deutsch (die Datei kennt nur DE/EN). Im Vorrat (`?v=1`), Cache `workfloh-pdf-page-v14`. `tests/seite.mjs` 90 grün.
+⚠ **Benannt, nicht angefasst:** `sw.js` löscht beim Aktivieren **jeden** Vorrat außer dem eigenen
+(`k !== CACHE_VERSION`) — auf `lausiklauskn-png.github.io` auch die der Geschwister-Apps. ⚠ Am Tablet/Handy nicht gemessen.
+
 ## Netzweit
 
 Freibrief zum Selbst-Mergen · frisch von `origin/main` vor jeder Arbeit · Ton ·
