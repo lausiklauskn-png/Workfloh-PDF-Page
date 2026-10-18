@@ -28,6 +28,10 @@
   .sprachen{margin-left:auto;display:flex;gap:6px}
   .sprachen button{font:inherit;font-weight:700;font-size:.9rem;min-width:44px;min-height:40px;border-radius:10px;border:2px solid #d6d9e0;background:#fff;color:var(--tinte);cursor:pointer}
   .sprachen button[aria-pressed="true"]{background:var(--rot);border-color:var(--rot);color:#fff}
+  /* Installieren-Knopf (assets/installieren.js), hinten in der Kopfzeile wie die Sprach-Knöpfe; am Handy nur ⬇ */
+  .kopf [data-install-knopf]{font:inherit;font-weight:700;font-size:.9rem;min-width:44px;min-height:40px;padding:0 10px;border-radius:10px;border:2px solid #d6d9e0;background:#fff;color:var(--tinte);cursor:pointer;flex-shrink:0}
+  @media (max-width:560px){.kopf [data-install-knopf]{min-width:40px;padding:0 8px}.kopf [data-install-knopf] .t{display:none}}
+  @media (max-width:400px){.kopf{gap:6px}.sprachen{gap:4px}.kopf .sprachen button{min-width:38px}.kopf [data-install-knopf]{min-width:36px;padding:0 6px}}
   .held{padding:26px 0 8px}
   h1{font-size:clamp(1.55rem,4.6vw,2.4rem);line-height:1.15;margin:0 0 8px}
   .unter{color:var(--grau);font-size:1.05rem;margin:0 0 18px}
@@ -191,6 +195,7 @@
   </div>
 </footer>
 
+<script src="assets/installieren.js?v=1" data-name="Workfloh PDF" data-in=".kopf" defer></script>
 <script>
 (() => {
   const VIDEO = { de: 'assets/workfloh-pdf-quer.mp4', en: 'assets/workfloh-pdf-quer-en.mp4', ru: 'assets/workfloh-pdf-quer-ru.mp4' };
