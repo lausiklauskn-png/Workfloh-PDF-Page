@@ -68,7 +68,7 @@ try {
   ok('Deutsch ist die Vorgabe', await p.getAttribute('[data-sprache="de"]', 'aria-pressed') === 'true');
   ok('Titel deutsch', /Formulare/.test(await p.textContent('h1')));
   const kap = await p.$$eval('#kapitel button', bs => bs.map(b => b.textContent));
-  ok('acht Kapitel-Knöpfe (ohne Anfang und Schluss)', kap.length === 8, JSON.stringify(kap));
+  ok('neun Kapitel-Knöpfe (ohne Anfang und Schluss; „Prüfen“ seit 2026-10-22)', kap.length === 9, JSON.stringify(kap));
   ok('Kapitel „Übersetzen" mit Zeit', kap.some(t => /^\d:\d\dÜbersetzen$/.test(t)), JSON.stringify(kap));
   ok('Poster steht da', await p.$eval('#poster', i => i.complete && i.naturalWidth > 0));
   // Überblick: was die App kann, wie es ineinandergreift, gut zu wissen
@@ -222,7 +222,7 @@ try {
       buehne: (r => ({ w: r.width, h: r.height }))(document.getElementById('buehne').getBoundingClientRect()) }; });
   let L = await lage();
   ok('Hochkant: die Seite erkennt es von selbst', L.hoch, JSON.stringify(L));
-  ok('Hochkant: Poster der Hochkant-Fassung, Länge wie das ganze Video', /poster-hochvoll-en\.jpg$/.test(L.poster) && L.dauer === '3:40', JSON.stringify(L));
+  ok('Hochkant: Poster der Hochkant-Fassung, Länge wie das ganze Video', /poster-hochvoll-en\.jpg$/.test(L.poster) && L.dauer === '4:35', JSON.stringify(L));
   ok('Hochkant: die Kapitel stehen auch hochkant da (gleiche Sekunden)', L.kapitel, JSON.stringify(L));
   const nh = await q.evaluate(() => ({ src: document.getElementById('neuPoster').getAttribute('src'), hoch: document.getElementById('neuBild').classList.contains('hoch'), w: document.getElementById('neuBild').getBoundingClientRect().width }));
   ok('Neu hochkant: Standbild der Hochkant-Fassung (englisch), Rahmen 9:16 und nicht breiter als das Fenster', /poster-neu-befehle-hoch-en\.jpg$/.test(nh.src) && nh.hoch && nh.w <= 360, JSON.stringify(nh));

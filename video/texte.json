@@ -47,7 +47,17 @@
   "läuft offline · deine Daten bleiben auf dem Gerät": "works offline · your data stays on your device",
   "kostenlos · ohne Konto · deine Daten bleiben auf dem Gerät": "free · no account · your data stays on your device",
   "Tipp: Dokumente am besten im <b>Chrome-Browser</b> übersetzen": "Tip: documents translate best in the <b>Chrome browser</b>",
-  "Anträge": "Applications"
+  "Anträge": "Applications",
+  "Prüfen": "Check",
+  "Jedes neue Dokument trägt einen <b>gelben Prüfpunkt</b>": "Every new document carries a <b>yellow check dot</b>",
+  "Im geöffneten Dokument: <b>oben der gelbe Punkt</b>": "In the open document: <b>the yellow dot at the top</b>",
+  "Ein Tipp — <b>das Rad dreht sich</b>, die App liest und prüft": "One tap — <b>the wheel spins</b>, the app reads and checks",
+  "Geprüft — <b>der Prüfbericht</b> liegt bereit": "Checked — <b>the check report</b> is ready",
+  "An jeder Karte: <b>der gelbe Punkt</b> prüft genau dieses Dokument": "On every card: <b>the yellow dot</b> checks just that document",
+  "Oder alle auf einmal: <b>„Alle prüfen“</b>": "Or all at once: <b>“Check all”</b>",
+  "Eins nach dem anderen — <b>mit Fortschritt</b>, jederzeit abbrechbar": "One after the other — <b>with progress</b>, cancel any time",
+  "Viele Dokumente? Noch zwei dazu — <b>alle noch ungeprüft</b>": "Many documents? Two more — <b>all still unchecked</b>",
+  "Weiter mit dem Formular": "On with the form"
  },
  "ru": {
   "Formulare einfach erledigen — fotografieren, ausfüllen, übersetzen": "Формуляры — просто: сфотографировать, заполнить, перевести",
@@ -97,6 +107,16 @@
   "läuft offline · deine Daten bleiben auf dem Gerät": "работает офлайн · ваши данные остаются на устройстве",
   "kostenlos · ohne Konto · deine Daten bleiben auf dem Gerät": "бесплатно · без аккаунта · данные остаются на устройстве",
   "Tipp: Dokumente am besten im <b>Chrome-Browser</b> übersetzen": "Совет: документы лучше всего переводить в <b>браузере Chrome</b>",
-  "Anträge": "Заявления"
+  "Anträge": "Заявления",
+  "Prüfen": "Проверка",
+  "Jedes neue Dokument trägt einen <b>gelben Prüfpunkt</b>": "У каждого нового документа есть <b>жёлтая точка проверки</b>",
+  "Im geöffneten Dokument: <b>oben der gelbe Punkt</b>": "В открытом документе: <b>жёлтая точка вверху</b>",
+  "Ein Tipp — <b>das Rad dreht sich</b>, die App liest und prüft": "Одно касание — <b>колесо крутится</b>, приложение читает и проверяет",
+  "Geprüft — <b>der Prüfbericht</b> liegt bereit": "Проверено — <b>отчёт о проверке</b> готов",
+  "An jeder Karte: <b>der gelbe Punkt</b> prüft genau dieses Dokument": "На каждой карточке: <b>жёлтая точка</b> проверяет именно этот документ",
+  "Oder alle auf einmal: <b>„Alle prüfen“</b>": "Или все сразу: <b>«Проверить все»</b>",
+  "Eins nach dem anderen — <b>mit Fortschritt</b>, jederzeit abbrechbar": "Один за другим — <b>с ходом проверки</b>, можно прервать в любой момент",
+  "Viele Dokumente? Noch zwei dazu — <b>alle noch ungeprüft</b>": "Много документов? Ещё два — <b>все ещё не проверены</b>",
+  "Weiter mit dem Formular": "Продолжим с формой"
  }
 }
