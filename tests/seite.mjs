@@ -68,7 +68,7 @@ try {
   ok('Deutsch ist die Vorgabe', await p.getAttribute('[data-sprache="de"]', 'aria-pressed') === 'true');
   ok('Titel deutsch', /Formulare/.test(await p.textContent('h1')));
   const kap = await p.$$eval('#kapitel button', bs => bs.map(b => b.textContent));
-  ok('acht Kapitel-Knöpfe (ohne Anfang und Schluss)', kap.length === 8, JSON.stringify(kap));
+  ok('neun Kapitel-Knöpfe (ohne Anfang und Schluss; „Prüfen“ seit 2026-10-22)', kap.length === 9, JSON.stringify(kap));
   ok('Kapitel „Übersetzen" mit Zeit', kap.some(t => /^\d:\d\dÜbersetzen$/.test(t)), JSON.stringify(kap));
   ok('Poster steht da', await p.$eval('#poster', i => i.complete && i.naturalWidth > 0));
   // Überblick: was die App kann, wie es ineinandergreift, gut zu wissen

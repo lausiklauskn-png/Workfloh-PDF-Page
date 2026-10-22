@@ -79,7 +79,28 @@ const aus = NAME === 'probe' ? path.join(ROH, 'probe.mp4') : path.join(HIER, '..
 fs.mkdirSync(path.dirname(aus), { recursive: true });
 
 // 3 · Ton: Musik (ab MUSIK_AB, 1 s Einblende, 2,5 s Ausblende) + Klicks
-const eing = ['-f', 'concat', '-safe', '0', '-i', path.join(ROH, 'liste.txt'), '-stream_loop', '-1', '-ss', String(MUSIK_AB), '-i', MUSIK];   // Musik in Schleife (Klaus 2026-09-28): das Video wird nicht gekürzt
+/* Musik ohne Lücke (Klaus 2026-10-22: „die Musik strecken, keine Aussetzer, notfalls Wiederholung").
+   Gemessen am alten Video: „Friends" ist 148,4 s lang und klingt ab 140 s aus; die alte Schleife
+   (-stream_loop) begann danach von vorn — mit ~1 s fast Stille bei 147,5–148,7 s und dem leisen Intro
+   mitten im Kapitel Übersetzen. Jetzt: die Musik läuft bis AUS, springt mit 1,2 s Überblendung nach EIN
+   zurück und wiederholt AUS–EIN so oft wie nötig. AUS–EIN = 72,0 s ist eine gemessene musikalische
+   Periode des Titels (Kreuzkorrelation 0,62, gleiche Harmoniefolge) — die Naht liegt im Takt.
+   MUSIK_SCHLEIFE="AUS:EIN" für einen anderen Titel; „aus" schaltet zurück auf die alte Schleife. */
+const SCHLEIFE = (process.env.MUSIK_SCHLEIFE || '121.0:49.0');
+let MUSIK_LANG = MUSIK;
+if (SCHLEIFE !== 'aus') {
+  const [AUS, EIN] = SCHLEIFE.split(':').map(Number), UEB = 1.2;
+  if (!(AUS > EIN + 5) || !(EIN > UEB)) { console.error('MUSIK_SCHLEIFE ungültig:', SCHLEIFE); process.exit(2); }
+  const noetig = dauer + MUSIK_AB + 5, runden = Math.max(0, Math.ceil((noetig - AUS) / (AUS - EIN)));
+  const teile = [`[0:a]atrim=0:${(AUS + UEB / 2).toFixed(3)},asetpts=PTS-STARTPTS[s0]`];
+  for (let i = 1; i <= runden; i++) teile.push(`[0:a]atrim=${(EIN - UEB / 2).toFixed(3)}:${(AUS + UEB / 2).toFixed(3)},asetpts=PTS-STARTPTS[s${i}]`);
+  let kette = '[s0]';
+  for (let i = 1; i <= runden; i++) { teile.push(`${kette}[s${i}]acrossfade=d=${UEB}:c1=qsin:c2=qsin[x${i}]`); kette = `[x${i}]`; }
+  MUSIK_LANG = path.join(ROH, 'musik-lang.wav');
+  execFileSync(FF, ['-y', '-hide_banner', '-loglevel', 'error', '-i', MUSIK, '-filter_complex', teile.join(';'), '-map', kette, '-c:a', 'pcm_s16le', MUSIK_LANG], { stdio: 'inherit' });
+  console.log(`  Musik: 0–${AUS} s, dann ${runden}× ${EIN}–${AUS} s mit ${UEB} s Überblendung`);
+}
+const eing = ['-f', 'concat', '-safe', '0', '-i', path.join(ROH, 'liste.txt'), '-stream_loop', '-1', '-ss', String(MUSIK_AB), '-i', MUSIK_LANG];   // Musik in Schleife (Klaus 2026-09-28): das Video wird nicht gekürzt
 klicks.forEach(() => eing.push('-i', KLICK));
 let fil = `[1:a]atrim=0:${dauer.toFixed(3)},asetpts=PTS-STARTPTS,volume=0.75,afade=t=in:d=1,afade=t=out:st=${Math.max(0, dauer - 2.5).toFixed(3)}:d=2.5[m]`;
 const mix = ['[m]'];

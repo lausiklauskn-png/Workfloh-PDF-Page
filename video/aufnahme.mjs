@@ -26,7 +26,11 @@ const ZIEL = path.join(HIER, '_roh', NAME);
 fs.rmSync(ZIEL, { recursive: true, force: true }); fs.mkdirSync(path.join(ZIEL, 'bilder'), { recursive: true });
 const FOTO = path.join(HIER, '_roh/foto.jpg');
 const FORM = path.join(APP, 'beispiele/Beispiel-Amtsformular-Bewohnerparkausweis.pdf');
+// Szene Prüfen: das Beispielformular zweimal unter anderem Namen — mehrere Dateien zugleich, die Bibliothek bleibt offen.
+// (Das schräge Testfoto ergibt ehrlich „Nicht ganz geprüft“: zu unsicher gelesene Zeilen — für die Vorführung ungeeignet.)
+const FOTOS_PRUEFEN = [path.join(HIER, '_roh/Antrag-Meier.pdf'), path.join(HIER, '_roh/Antrag-Schulz.pdf')];
 if (!fs.existsSync(FOTO)) { console.error('Erst das Foto bauen: node video/foto-bauen.mjs'); process.exit(2); }
+for (const f of FOTOS_PRUEFEN) fs.copyFileSync(FORM, f);
 
 const { srv, url } = await starteServer(HIER, APP);
 const browser = await chromium.launch({ args: ['--autoplay-policy=no-user-gesture-required'] });
@@ -57,6 +61,7 @@ await ctx.addInitScript(W => {
 }, UE);
 const page = await ctx.newPage();
 page.on('pageerror', e => console.log('  [Seitenfehler]', String(e).slice(0, 160)));
+page.on('console', m => { if (m.type() === 'error' && !/too small to scale|cannot be recognized/.test(m.text())) console.log('  [Konsole]', m.text().slice(0, 200)); });
 await page.goto(`${url}/buehne.html?w=${W}&h=${H}`);
 await page.waitForFunction(() => window.__bereit);
 await page.evaluate(u => B.laden(u), `${url}/app/index.html`);
@@ -243,8 +248,84 @@ async function szeneEinlesen() {
   await tippe('#vorschlagBand [data-alle]', { nachher: 1200 });
 }
 
+/* Prüfen (Klaus 2026-10-22): „wo mit dem Finger auf den gelben Prüfpunkt unten geklickt wird und wenn man auf
+   ‚Alle prüfen' drückt … nur ein kleiner Teil, maximal 2 Blätter" · „Nur deutlicher, vielleicht mit einer
+   Vergrößerung" (das drehende Rad) · „Auch die Stelle … innerhalb der Datei, damit ich sehe, da starte ich die
+   Prüfung". Blatt 1: im geöffneten Dokument der gelbe Punkt oben, ein Tipp, das Rad groß, der Prüfbericht.
+   Blatt 2: in der Bibliothek der Punkt an der Karte, dann „▶ Alle prüfen" mit Fortschritt, groß. Alles echte App,
+   echte Prüfung (dauert so lange, wie sie dauert). Kein Wort von „Virenschutz". */
+const pad = (r, p) => ({ x: r.x - p, y: r.y - p, w: r.w + 2 * p, h: r.h + 2 * p });
+async function szenePruefen() {
+  await kapitel('3', 'Prüfen');
+  await text('Jedes neue Dokument trägt einen <b>gelben Prüfpunkt</b>');
+  await warteAuf('#edPruefung [data-pruef-nachholen]');
+  let r = await rect('#edPruefung');
+  await page.evaluate(([x, y]) => B.handZu(x, y), [r.x + r.w * 0.35, r.y + r.h * 0.7]);
+  await warte(500);
+  await page.evaluate(() => B.handWeg());
+  await page.evaluate(([r, f]) => B.zoom(r, f), [pad(r, 30), hoch ? 2.4 : 2.6]);
+  await text('Im geöffneten Dokument: <b>oben der gelbe Punkt</b>');
+  await warte(2200);
+  await page.evaluate(() => B.zoom(null));
+  await warte(1250);              // die Kamera fährt 1,1 s zurück — erst dann stimmen die Koordinaten
+  await text('Ein Tipp — <b>das Rad dreht sich</b>, die App liest und prüft');
+  await tippe('#edPruefung [data-pruef-nachholen]', { nachher: 150 });
+  await page.evaluate(() => B.handWeg());
+  r = await rect('#edPruefung');
+  // ganz nah ans drehende Rad (Klaus: „Nur deutlicher, vielleicht mit einer Vergrößerung“)
+  await page.evaluate(([r, f]) => B.zoom(r, f), [pad({ x: r.x, y: r.y, w: Math.min(r.w, 230), h: r.h }, 14), hoch ? 3.2 : 3.6]);
+  await app.waitForFunction(() => !document.querySelector('#edPruefung [data-pruefung="laeuft"]'), null, { timeout: 120000 });
+  await text('Geprüft — <b>der Prüfbericht</b> liegt bereit');
+  await warte(1800);
+  await page.evaluate(() => B.zoom(null));
+  await warte(1250);              // die Kamera fährt 1,1 s zurück — erst dann stimmen die Koordinaten
+  await tippe('#edPruefung [data-pruef]', { nachher: 300 });
+  await page.evaluate(() => B.handWeg());
+  await warteAuf('.dlg [data-pruefbericht]');
+  await warte(1700);
+  for (let i = 0; i < 3 && await app.$('.dlg'); i++) { await page.keyboard.press('Escape'); await warte(250); }
+  // Blatt 2: in der Bibliothek
+  await zurBibliothek();
+  await app.evaluate(() => { window.__wfpdf.S.aktOrdner = 'alle'; window.__wfpdf.suche.zeichneBibliothek(); window.scrollTo(0, 0); });
+  await text('Viele Dokumente? Noch zwei dazu — <b>alle noch ungeprüft</b>');
+  const vorher = await app.evaluate(() => window.__wfpdf.S.docs.length);
+  const [wahl] = await Promise.all([page.waitForEvent('filechooser'), tippe('.import-leiste label:has(#inDatei)', { nachher: 200 })]);
+  await wahl.setFiles(FOTOS_PRUEFEN);
+  await page.evaluate(() => B.handWeg());
+  await app.waitForFunction(n => window.__wfpdf.S.docs.length >= n, vorher + FOTOS_PRUEFEN.length, { timeout: 60000 });
+  await warteAuf('#pruefAlle [data-pruef-alle-los]');
+  await warte(400);
+  const punkt = await app.evaluate(() => { const k = document.querySelector('#dokGitter .dok [data-pruef-nachholen]'); return k ? '#dokGitter .dok[data-id="' + k.closest('.dok').dataset.id + '"] [data-pruef-nachholen]' : null; });
+  if (punkt) {
+    await insBild(punkt);
+    const p = await rect(punkt);
+    await page.evaluate(([x, y]) => B.handZu(x, y), [p.x + p.w * 0.3, p.y + p.h * 0.7]);
+    await text('An jeder Karte: <b>der gelbe Punkt</b> prüft genau dieses Dokument');
+    await warte(1900);
+  }
+  await insBild('#pruefAlle');
+  await text('Oder alle auf einmal: <b>„Alle prüfen“</b>');
+  await tippe('#pruefAlle [data-pruef-alle-los]', { nachher: 150 });
+  await page.evaluate(() => B.handWeg());
+  r = await rect('#pruefAlle [data-pruef-alle-lauf]') || await rect('#pruefAlle');
+  await page.evaluate(([r, f]) => B.zoom(r, f), [pad({ x: r.x, y: r.y, w: Math.max(r.w, 320), h: r.h }, 18), hoch ? 2.6 : 3.0]);
+  await text('Eins nach dem anderen — <b>mit Fortschritt</b>, jederzeit abbrechbar');
+  await app.waitForFunction(() => !window.__wfpdf.eingang.ALLE.an, null, { timeout: 180000 });
+  await warte(1900);
+  await page.evaluate(() => B.zoom(null));
+  await warte(1250);
+  // weiter mit dem Formular: Ausfüllen braucht es offen im Editor
+  await text('Weiter mit dem Formular');
+  await tippe((await dok(/^Beispiel-Amtsformular-Bewohnerparkausweis$/)) + ' .dok-bild', { nachher: 300 });
+  await page.evaluate(() => B.handWeg());
+  await app.waitForSelector('#sc-ed.on .seite canvas', { timeout: 60000 });
+  // Ein fertig erkanntes Formular öffnet die App zum Ausfüllen; das nächste Kapitel beginnt beim Bearbeiten
+  await app.evaluate(() => { const b = document.getElementById('mBearbeiten'); if (b && !b.classList.contains('on')) b.click(); });
+  await warte(600);
+}
+
 async function szeneAusfuellen() {
-  await kapitel('3', 'Ausfüllen');
+  await kapitel('4', 'Ausfüllen');
   await text('Beschriftung falsch erkannt? <b>Feldart einfach umstellen</b>');
   const us = await feld(/Ich versichere/, { x: 49 });
   await tippe(us, { nachher: 700 });
@@ -295,7 +376,7 @@ async function szeneAusfuellen() {
 }
 
 async function szeneAusgeben() {
-  await kapitel('4', 'Ausgeben');
+  await kapitel('5', 'Ausgeben');
   await text('Fertig? <b>Als PDF ausgeben</b>');
   await tippe('#edExport', { nachher: 900 });
   await warteAuf('.dlg [data-m="fest"]');
@@ -313,7 +394,7 @@ async function szeneAusgeben() {
 
 const ZIEL_UE = SPRACHE === 'ru' ? 'ru' : 'en';   // die russische Fassung übersetzt ins Russische
 async function szeneUebersetzen() {
-  await kapitel('5', 'Übersetzen');
+  await kapitel('6', 'Übersetzen');
   await text('Formular in fremder Sprache? <b>Übersetzen — mit Aufbau</b>');
   await zurBibliothek();
   await app.evaluate(() => { window.__wfpdf.S.aktOrdner = 'alle'; window.__wfpdf.suche.zeichneBibliothek(); });
@@ -365,7 +446,7 @@ async function szeneUebersetzen() {
 }
 
 async function szeneSuchen() {
-  await kapitel('6', 'Suchen');
+  await kapitel('7', 'Suchen');
   await text('Wo war das nochmal? <b>Einfach fragen</b>');
   await zurBibliothek();
   await app.waitForFunction(() => window.__wfpdf.S.docs.every(d => window.__wfpdf.suche.TEXTE.has(d.id)), null, { timeout: 60000 }).catch(() => {});
@@ -390,7 +471,7 @@ async function szeneSuchen() {
 }
 
 async function szeneOrdnen() {
-  await kapitel('7', 'Ordnen');
+  await kapitel('8', 'Ordnen');
   await text('Ordnung mit <b>einem Handgriff</b>');
   await zurBibliothek();
   await app.evaluate(() => { const s = document.getElementById('bibSuche'); s.value = ''; s.dispatchEvent(new Event('input', { bubbles: true })); window.__wfpdf.S.aktOrdner = 'alle'; window.__wfpdf.suche.zeichneBibliothek(); });
@@ -434,7 +515,7 @@ const FOLIEN = [
 ];
 async function szeneDiaschau() {
   await text('');
-  await kapitel('8', 'Und noch mehr');
+  await kapitel('9', 'Und noch mehr');
   for (let i = 0; i < FOLIEN.length; i++) {
     const [sym, t, u, art] = FOLIEN[i];
     if (process.env.DIAG) {
@@ -567,7 +648,7 @@ const beginn = Date.now();
 const szenen = [];   // Start je Szene (Sekunden seit 1970) → Kapitel-Knöpfe der Seite
 try {
   const NUR = (process.argv.find(a => a.startsWith('--nur=')) || '').slice(6).split(',').filter(Boolean);
-  const SZENEN = { anfang: szeneAnfang, scannen: szeneScannen, einlesen: szeneEinlesen, ausfuellen: szeneAusfuellen,
+  const SZENEN = { anfang: szeneAnfang, scannen: szeneScannen, einlesen: szeneEinlesen, pruefen: szenePruefen, ausfuellen: szeneAusfuellen,
     ausgeben: szeneAusgeben, uebersetzen: szeneUebersetzen, suchen: szeneSuchen, ordnen: szeneOrdnen,
     diaschau: szeneDiaschau, schluss: szeneSchluss };
   Object.assign(SZENEN, { hochAnfang, hochScannen, hochFelder, hochUebersetzen, hochSchluss });
