@@ -172,7 +172,16 @@ async function dok(re) {
   if (!id) throw new Error('Karte fehlt: ' + re);
   return `#dokGitter .dok[data-id="${id}"]`;
 }
-async function zurBibliothek() { if (await app.$('#sc-ed.on')) await tippe('#edZurueck', { nachher: 700 }); await app.waitForSelector('#sc-bib.on'); }
+async function zurBibliothek() {
+  if (await app.$('#sc-ed.on')) {
+    // Die Editor-Leiste rollt waagrecht; hochkant auf Russisch lag „← Библиотека“ außerhalb (gemessen 2026-10-22:
+    // der Finger traf das Mycel-Lämpchen). Erst an den Anfang rollen, dann tippen.
+    await app.evaluate(() => { for (let p = document.getElementById('edZurueck').parentElement; p; p = p.parentElement) p.scrollLeft = 0; });
+    await warte(300);
+    await tippe('#edZurueck', { nachher: 700 });
+  }
+  await app.waitForSelector('#sc-bib.on');
+}
 async function tippeText(sel, wort) {
   await tippe(sel, { nachher: 250 });
   for (const z of wort) { await page.keyboard.type(z); await warte(40); }

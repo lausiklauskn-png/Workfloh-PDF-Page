@@ -1,1 +1,1 @@
-[{"n":"anfang","t":0},{"n":"scannen","t":4.3},{"n":"einlesen","t":39.4},{"n":"ausfuellen","t":56},{"n":"ausgeben","t":97.3},{"n":"uebersetzen","t":110.9},{"n":"suchen","t":151},{"n":"ordnen","t":170.2},{"n":"diaschau","t":199.1},{"n":"schluss","t":213.6}]
+[{"n":"anfang","t":0},{"n":"scannen","t":4.3},{"n":"einlesen","t":42.4},{"n":"pruefen","t":59.1},{"n":"ausfuellen","t":106.9},{"n":"ausgeben","t":149.2},{"n":"uebersetzen","t":162.9},{"n":"suchen","t":204.1},{"n":"ordnen","t":223.5},{"n":"diaschau","t":253.2},{"n":"schluss","t":267.9}]

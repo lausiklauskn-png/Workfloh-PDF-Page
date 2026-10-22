@@ -8,6 +8,18 @@ Ablauf, Bauweise, benannte Grenzen.
 
 ## Was hier leicht kaputtgeht
 
+- **Prüf-Szene und Musik ohne Lücke (Klaus 2026-10-22).** Neue Szene `pruefen` (Kapitel 3, nach „Einlesen“):
+  gelber Punkt oben im geöffneten Dokument, Tipp, das drehende Rad stark vergrößert, Prüfbericht; dann in der
+  Bibliothek der Punkt an der Karte und „▶ Alle prüfen“ mit „Prüfe Dokument X von 3 …“. Braucht Workflow-PDF
+  ab #130 (Version 1.1.0). Länge jetzt DE 4:34 · EN 4:35 · RU 4:33, neun Kapitel.
+  **Musik:** gemessen hatte „Friends“ (148,4 s) nach der eigenen Ausblende ~1 s Stille und begann dann von vorn.
+  `schnitt.mjs` springt jetzt bei 121 s mit 1,2 s Überblendung zurück nach 49 s (gemessene Periode 72,0 s,
+  `MUSIK_SCHLEIFE`). Gemessen an allen sechs MP4: kein 0,5-s-Fenster unter −40 dB, das leiseste −26 dB.
+  Die Musikdatei wurde aus den sechs alten MP4 zurückgewonnen (Median je Abtastwert, die Klicks fallen weg);
+  sie liegt weiter NICHT im Repo. Die Editor-Leiste rollt waagrecht: `zurBibliothek` rollt sie vor dem Tipp
+  an den Anfang (RU hochkant traf der Finger sonst das Mycel-Lämpchen). Bilder in `assets/bilder` neu gezogen
+  (gleicher Abstand zum Kapitelanfang wie vorher). Cache v15.
+
 - **Die Musik liegt NICHT im Repo.** Pixabay erlaubt sie im Video, aber nicht
   als Datei zum Weitergeben. Das Skript liest sie aus `MUSIK=…`. Kein `*.mp3`
   committen (`.gitignore` sperrt es).

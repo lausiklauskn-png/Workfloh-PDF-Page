@@ -222,7 +222,7 @@ try {
       buehne: (r => ({ w: r.width, h: r.height }))(document.getElementById('buehne').getBoundingClientRect()) }; });
   let L = await lage();
   ok('Hochkant: die Seite erkennt es von selbst', L.hoch, JSON.stringify(L));
-  ok('Hochkant: Poster der Hochkant-Fassung, Länge wie das ganze Video', /poster-hochvoll-en\.jpg$/.test(L.poster) && L.dauer === '3:40', JSON.stringify(L));
+  ok('Hochkant: Poster der Hochkant-Fassung, Länge wie das ganze Video', /poster-hochvoll-en\.jpg$/.test(L.poster) && L.dauer === '4:35', JSON.stringify(L));
   ok('Hochkant: die Kapitel stehen auch hochkant da (gleiche Sekunden)', L.kapitel, JSON.stringify(L));
   const nh = await q.evaluate(() => ({ src: document.getElementById('neuPoster').getAttribute('src'), hoch: document.getElementById('neuBild').classList.contains('hoch'), w: document.getElementById('neuBild').getBoundingClientRect().width }));
   ok('Neu hochkant: Standbild der Hochkant-Fassung (englisch), Rahmen 9:16 und nicht breiter als das Fenster', /poster-neu-befehle-hoch-en\.jpg$/.test(nh.src) && nh.hoch && nh.w <= 360, JSON.stringify(nh));
